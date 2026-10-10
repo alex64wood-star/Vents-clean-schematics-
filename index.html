@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Venta-Clean SW | 3D Schematic Prototype</title>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: rgba(17, 20, 24, 0.92);
+      --panel-2: rgba(28, 33, 39, 0.92);
+      --text: #eef2f5;
+      --muted: #a9b3bd;
+      --accent: #77ff33;
+      --accent-dark: #2b6e14;
+      --warning: #ffcc66;
+      --danger: #ff6b6b;
+      --line: rgba(255,255,255,0.08);
+      --piece-default: #5e646b;
+      --piece-cleaned: #77ff33;
+      --piece-selected: #ffd54f;
+      --access-door: #1f6e0d;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    #canvas-wrap {
+      position: absolute;
+      inset: 0;
+    }
+
+    .topbar {
+      position: absolute;
+      top: max(10px, env(safe-area-inset-top));
+      left: 10px;
+      right: 10px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+      pointer-events: auto;
+    }
+
+    .brand {
+      padding: 12px 14px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .status {
+      padding: 12px 14px;
+      width: 165px;
+      flex-shrink: 0;
+    }
+
+    .status .label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .status .value {
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .bottom-panel {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toolbar, .toolbar-2 {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px;
+      pointer-events: auto;
+      scrollbar-width: none;
+    }
+
+    .toolbar::-webkit-scrollbar,
+    .toolbar-2::-webkit-scrollbar { display: none; }
+
+    button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      min-width: max-content;
+      min-height: 46px;
+      touch-action: manipulation;
+    }
+
+    button:active { transform: scale(0.98); }
+    button.primary {
+      background: rgba(119,255,51,0.16);
+      border-color: rgba(119,255,51,0.28);
+    }
+    button.warn {
+      background: rgba(255, 204, 102, 0.12);
+      border-color: rgba(255, 204, 102, 0.25);
+    }
+    button.danger {
+      background: rgba(255, 107, 107, 0.12);
+      border-color: rgba(255, 107, 107, 0.25);
+    }
+
+    .help {
+      pointer-events: auto;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #toast {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: calc(max(10px, env(safe-area-inset-top)) + 90px);
+      z-index: 20;
+      background: rgba(9, 11, 13, 0.92);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="canvas-wrap"></div>
+
+    <div class="topbar">
+      <div class="card brand">
+        <h1>Venta-Clean SW | 3D Schematic Prototype</h1>
+        <p>Automatic-connection kitchen extract schematic for iPhone surveys.</p>
+      </div>
+      <div class="card status">
+        <div class="label">Selected</div>
+        <div class="value" id="selected-status">Nothing selected</div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <div class="bottom-panel">
+      <div class="card toolbar">
+        <button class="primary" id="add-straight">+ 1m straight</button>
+        <button id="turn-left">Turn left</button>
+        <button id="turn-right">Turn right</button>
+        <button id="turn-up">Turn up</button>
+        <button id="turn-down">Turn down</button>
+        <button class="warn" id="undo">Undo</button>
+        <button class="danger" id="reset">Reset</button>
+      </div>
+
+      <div class="card toolbar-2">
+        <button id="toggle-cleaned">Toggle cleaned</button>
+        <button id="toggle-door">Toggle access door</button>
+        <button id="save">Save</button>
+        <button id="load">Load</button>
+        <button id="export">Export PNG</button>
+        <button id="reset-view">Reset view</button>
+      </div>
+
+      <div class="card help">
+        Tap a section to select it. Use one finger to orbit, two fingers to pan/zoom. Build the system in order from the start point.
+        <div class="legend">
+          <div class="legend-item"><span class="swatch" style="background:#5e646b"></span><span>Not marked cleaned</span></div>
+          <div class="legend-item"><span class="swatch" style="background:#77ff33"></span><span>Cleaned</span></div>
+          <div class="legend-item"><span class="swatch" style="background:#1f6e0d"></span><span>Access door</span></div>
+          <div class="legend-item"><span class="swatch" style="background:#ffd54f"></span><span>Selected highlight</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const STORAGE_KEY = 'venta-clean-schematic-v1';
+    const STRAIGHT_LENGTH = 1.0; // metres in app logic
+    const UNIT_SCALE = 100; // 1 metre = 100 scene units
+    const DUCT_RADIUS = 16;
+    const DOOR_RADIUS = 5;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b0d10);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
+    camera.position.set(250, 220, 250);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('canvas-wrap').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(50, 30, 0);
+    controls.minDistance = 80;
+    controls.maxDistance = 1500;
+    controls.screenSpacePanning = true;
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x111111, 1.1);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(300, 500, 250);
+    scene.add(dirLight);
+
+    const grid = new THREE.GridHelper(1600, 32, 0x444444, 0x333333);
+    grid.position.y = -45;
+    scene.add(grid);
+
+    const startMarker = new THREE.Mesh(
+      new THREE.CylinderGeometry(14, 14, 6, 24),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.1, roughness: 0.8 })
+    );
+    startMarker.rotation.z = Math.PI / 2;
+    startMarker.position.set(-20, 0, 0);
+    scene.add(startMarker);
+
+    const systemGroup = new THREE.Group();
+    scene.add(systemGroup);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    let parts = [];
+    let selectedId = null;
+    let nextId = 1;
+
+    let cursor = {
+      position: new THREE.Vector3(0, 0, 0),
+      forward: new THREE.Vector3(1, 0, 0),
+      up: new THREE.Vector3(0, 1, 0)
+    };
+
+    function cloneCursor() {
+      return {
+        position: cursor.position.clone(),
+        forward: cursor.forward.clone(),
+        up: cursor.up.clone()
+      };
+    }
+
+    function normalizeBasis(forward, up) {
+      const f = forward.clone().normalize();
+      const right = f.clone().cross(up).normalize();
+      const u = right.clone().cross(f).normalize();
+      return { forward: f, up: u, right };
+    }
+
+    function makeQuaternion(forward, up) {
+      const basis = normalizeBasis(forward, up);
+      const matrix = new THREE.Matrix4().makeBasis(basis.forward, basis.up, basis.right);
+      const q = new THREE.Quaternion();
+      q.setFromRotationMatrix(matrix);
+      return q;
+    }
+
+    function createDuctMesh(part) {
+      const length = part.length * UNIT_SCALE;
+      const geom = new THREE.CylinderGeometry(DUCT_RADIUS, DUCT_RADIUS, length, 24, 1, false);
+      geom.rotateZ(-Math.PI / 2);
+      const mat = new THREE.MeshStandardMaterial({
+        color: part.cleaned ? 0x77ff33 : 0x5e646b,
+        metalness: 0.15,
+        roughness: 0.55,
+        emissive: 0x000000
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.fromArray(part.position);
+      mesh.quaternion.fromArray(part.quaternion);
+      mesh.userData.partId = part.id;
+      mesh.userData.type = 'duct';
+      addAccessDoorMeshIfNeeded(mesh, part);
+      return mesh;
+    }
+
+    function addAccessDoorMeshIfNeeded(parentMesh, part) {
+      const existing = parentMesh.getObjectByName('access-door');
+      if (existing) parentMesh.remove(existing);
+      if (!part.accessDoor) return;
+
+      const door = new THREE.Mesh(
+        new THREE.CylinderGeometry(DOOR_RADIUS, DOOR_RADIUS, 3, 18),
+        new THREE.MeshStandardMaterial({ color: 0x1f6e0d, metalness: 0.15, roughness: 0.6 })
+      );
+      door.name = 'access-door';
+      door.position.set(0, DUCT_RADIUS + 3, 0);
+      parentMesh.add(door);
+    }
+
+    function createBendMesh(part) {
+      const geom = new THREE.SphereGeometry(DUCT_RADIUS + 1.5, 24, 18);
+      const mat = new THREE.MeshStandardMaterial({
+        color: part.cleaned ? 0x77ff33 : 0x5e646b,
+        metalness: 0.15,
+        roughness: 0.55,
+        emissive: 0x000000
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.fromArray(part.position);
+      mesh.userData.partId = part.id;
+      mesh.userData.type = 'bend';
+      return mesh;
+    }
+
+    function buildMeshForPart(part) {
+      const mesh = part.type === 'duct' ? createDuctMesh(part) : createBendMesh(part);
+      systemGroup.add(mesh);
+      part.mesh = mesh;
+    }
+
+    function rebuildSceneParts() {
+      systemGroup.clear();
+      for (const part of parts) buildMeshForPart(part);
+      refreshSelectionVisuals();
+    }
+
+    function setStatus(text) {
+      document.getElementById('selected-status').textContent = text;
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function refreshSelectionVisuals() {
+      let selectedPart = null;
+      for (const part of parts) {
+        if (!part.mesh) continue;
+        part.mesh.material.color.setHex(part.cleaned ? 0x77ff33 : 0x5e646b);
+        part.mesh.material.emissive.setHex(part.id === selectedId ? 0x3a2d00 : 0x000000);
+        if (part.mesh.material.emissiveIntensity !== undefined) part.mesh.material.emissiveIntensity = part.id === selectedId ? 0.9 : 0.0;
+        if (part.id === selectedId) selectedPart = part;
+      }
+
+      if (!selectedPart) {
+        setStatus('Nothing selected');
+      } else {
+        const flags = [];
+        if (selectedPart.cleaned) flags.push('cleaned');
+        if (selectedPart.accessDoor) flags.push('access door');
+        const summary = `${selectedPart.type === 'duct' ? 'Duct' : 'Bend'} #${selectedPart.id}${flags.length ? ' · ' + flags.join(' · ') : ''}`;
+        setStatus(summary);
+      }
+    }
+
+    function currentBasis() {
+      return normalizeBasis(cursor.forward, cursor.up);
+    }
+
+    function addStraight(lengthMetres = STRAIGHT_LENGTH) {
+      const before = cloneCursor();
+      const q = makeQuaternion(cursor.forward, cursor.up);
+      const center = cursor.position.clone().add(cursor.forward.clone().normalize().multiplyScalar((lengthMetres * UNIT_SCALE) / 2));
+      const part = {
+        id: nextId++,
+        type: 'duct',
+        length: lengthMetres,
+        position: center.toArray(),
+        quaternion: q.toArray(),
+        cleaned: false,
+        accessDoor: false,
+        before: serializeCursor(before)
+      };
+      parts.push(part);
+      buildMeshForPart(part);
+      cursor.position.add(cursor.forward.clone().normalize().multiplyScalar(lengthMetres * UNIT_SCALE));
+      selectedId = part.id;
+      refreshSelectionVisuals();
+    }
+
+    function turn(kind) {
+      const before = cloneCursor();
+      const part = {
+        id: nextId++,
+        type: 'bend',
+        turn: kind,
+        position: cursor.position.toArray(),
+        cleaned: false,
+        accessDoor: false,
+        before: serializeCursor(before)
+      };
+      parts.push(part);
+      buildMeshForPart(part);
+
+      const basis = currentBasis();
+      switch (kind) {
+        case 'left':
+          cursor.forward = basis.up.clone().cross(basis.forward).normalize();
+          cursor.up = basis.up.clone();
+          break;
+        case 'right':
+          cursor.forward = basis.forward.clone().cross(basis.up).normalize();
+          cursor.up = basis.up.clone();
+          break;
+        case 'up':
+          cursor.forward = basis.up.clone();
+          cursor.up = basis.forward.clone().negate();
+          break;
+        case 'down':
+          cursor.forward = basis.up.clone().negate();
+          cursor.up = basis.forward.clone();
+          break;
+      }
+      selectedId = part.id;
+      refreshSelectionVisuals();
+    }
+
+    function serializeCursor(cur) {
+      return {
+        position: cur.position.toArray(),
+        forward: cur.forward.toArray(),
+        up: cur.up.toArray()
+      };
+    }
+
+    function restoreCursor(data) {
+      cursor.position.fromArray(data.position);
+      cursor.forward.fromArray(data.forward);
+      cursor.up.fromArray(data.up);
+    }
+
+    function getSelectedPart() {
+      return parts.find(p => p.id === selectedId) || null;
+    }
+
+    function toggleCleaned() {
+      const part = getSelectedPart();
+      if (!part) return showToast('Select a section first');
+      part.cleaned = !part.cleaned;
+      refreshSelectionVisuals();
+    }
+
+    function toggleDoor() {
+      const part = getSelectedPart();
+      if (!part) return showToast('Select a section first');
+      if (part.type !== 'duct') return showToast('Access doors go on straight duct sections');
+      part.accessDoor = !part.accessDoor;
+      addAccessDoorMeshIfNeeded(part.mesh, part);
+      refreshSelectionVisuals();
+    }
+
+    function undoLast() {
+      const last = parts.pop();
+      if (!last) return showToast('Nothing to undo');
+      restoreCursor(last.before);
+      rebuildSceneParts();
+      selectedId = parts.length ? parts[parts.length - 1].id : null;
+      refreshSelectionVisuals();
+    }
+
+    function resetSystem() {
+      parts = [];
+      selectedId = null;
+      nextId = 1;
+      cursor.position.set(0, 0, 0);
+      cursor.forward.set(1, 0, 0);
+      cursor.up.set(0, 1, 0);
+      rebuildSceneParts();
+      refreshSelectionVisuals();
+      showToast('System reset');
+    }
+
+    function saveSystem() {
+      const payload = {
+        nextId,
+        cursor: serializeCursor(cursor),
+        parts: parts.map(p => ({
+          id: p.id,
+          type: p.type,
+          length: p.length,
+          turn: p.turn,
+          position: p.position,
+          quaternion: p.quaternion,
+          cleaned: p.cleaned,
+          accessDoor: p.accessDoor,
+          before: p.before
+        }))
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      showToast('Saved on this device');
+    }
+
+    function loadSystem() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return showToast('No saved schematic found');
+      try {
+        const data = JSON.parse(raw);
+        nextId = data.nextId || 1;
+        parts = data.parts || [];
+        for (const p of parts) p.mesh = null;
+        restoreCursor(data.cursor);
+        rebuildSceneParts();
+        selectedId = parts.length ? parts[parts.length - 1].id : null;
+        refreshSelectionVisuals();
+        showToast('Saved schematic loaded');
+      } catch (err) {
+        console.error(err);
+        showToast('Could not load saved schematic');
+      }
+    }
+
+    function exportPNG() {
+      refreshSelectionVisuals();
+      renderer.render(scene, camera);
+      const link = document.createElement('a');
+      link.download = 'venta-clean-schematic.png';
+      link.href = renderer.domElement.toDataURL('image/png');
+      link.click();
+      showToast('PNG exported');
+    }
+
+    function resetView() {
+      camera.position.set(250, 220, 250);
+      controls.target.set(50, 30, 0);
+      controls.update();
+      showToast('View reset');
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+    function onPointerDown(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(systemGroup.children, true);
+      if (!hits.length) return;
+      const hit = hits[0].object;
+      const target = hit.userData.partId ? hit : findPartMeshParent(hit);
+      if (!target || !target.userData.partId) return;
+      selectedId = target.userData.partId;
+      refreshSelectionVisuals();
+    }
+
+    function findPartMeshParent(obj) {
+      let current = obj;
+      while (current && current !== systemGroup) {
+        if (current.userData && current.userData.partId) return current;
+        current = current.parent;
+      }
+      return null;
+    }
+
+    document.getElementById('add-straight').addEventListener('click', () => addStraight(STRAIGHT_LENGTH));
+    document.getElementById('turn-left').addEventListener('click', () => turn('left'));
+    document.getElementById('turn-right').addEventListener('click', () => turn('right'));
+    document.getElementById('turn-up').addEventListener('click', () => turn('up'));
+    document.getElementById('turn-down').addEventListener('click', () => turn('down'));
+    document.getElementById('toggle-cleaned').addEventListener('click', toggleCleaned);
+    document.getElementById('toggle-door').addEventListener('click', toggleDoor);
+    document.getElementById('undo').addEventListener('click', undoLast);
+    document.getElementById('reset').addEventListener('click', resetSystem);
+    document.getElementById('save').addEventListener('click', saveSystem);
+    document.getElementById('load').addEventListener('click', loadSystem);
+    document.getElementById('export').addEventListener('click', exportPNG);
+    document.getElementById('reset-view').addEventListener('click', resetView);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    refreshSelectionVisuals();
+    animate();
+  </script>
+</body>
+</html>
