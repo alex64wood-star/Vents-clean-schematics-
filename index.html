@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101418">
-  <meta name="version" content="venta-clean-v3">
+  <meta name="version" content="venta-clean-v4">
   <title>Venta-Clean SW | 3D Extract Builder</title>
   <style>
     :root {color-scheme:dark;--bg:#0c1014;--panel:#171d22;--surface:#242c31;--line:#344047;--text:#edf4ee;--muted:#9dabac;--green:#9be64b;--darkgreen:#205321;--warn:#f3c879;}
@@ -34,7 +34,7 @@
     #app.viewer-only #viewer{min-height:0}
     #app.viewer-only #viewer-tools{top:10px}
     #viewer canvas{width:100%;height:100%}
-    .tag{font-size:10px}
+    .tag{font-size:10px;max-width:34vw;text-overflow:ellipsis;overflow:hidden}.brand{overflow-wrap:anywhere}#viewer #hud{top:57px;max-width:78%;font-size:11px}#viewer-tools button{padding:7px 7px;font-size:11px;min-height:35px}#viewer-tools{gap:4px}
     @media(min-width:900px){#dock{height:395px}.pane{max-width:800px;margin:0 auto;width:100%}#viewer{min-height:300px}}
     @media(max-height:620px){#dock{height:55dvh;min-height:240px}#viewer{min-height:140px}header{padding-top:calc(env(safe-area-inset-top) + 5px);padding-bottom:5px}}
   </style>
@@ -55,7 +55,7 @@
 </head>
 <body>
 <div id="app">
-  <header><div><div class="brand">VENTA-CLEAN SW <span style="color:#96d65b">/ 3D EXTRACT</span></div><div class="sub">Kitchen extract schematic builder · v3.0</div></div><span class="tag">Branches + automatic reducers</span></header>
+  <header><div><div class="brand">VENTA-CLEAN SW <span style="color:#96d65b">/ 3D EXTRACT</span></div><div class="sub">Kitchen extract schematic builder · v4.1</div></div><span class="tag">Merge + swept elbows</span></header>
   <div id="viewer"><div id="hud"><strong id="hudline">Canopy 1 · Outlet 1</strong><br>Drag to rotate · pinch to zoom</div><div id="viewer-tools"><button id="focus-btn" type="button">◎ Centre</button><button id="expand-btn" type="button">⛶ Expand</button><button id="labels-btn" type="button" aria-pressed="true">Aa Labels</button></div><div class="legend"><span><i class="dot"></i>Not cleaned</span><span><i class="dot green"></i>Cleaned</span><span><i class="dot dark"></i>Access panel</span></div></div>
   <section id="dock">
     <div class="tabs"><button class="tab active" data-tab="build">＋ Build</button><button class="tab" data-tab="edit">✎ Edit</button><button class="tab" data-tab="runs">⑂ Runs</button><button class="tab" data-tab="files">↧ Save</button></div>
@@ -92,24 +92,27 @@
         <div class="card-title" id="edit-name">Selected component</div>
         <div class="grid2"><div class="field"><label for="edit-length">Length (m)</label><input id="edit-length" type="number" inputmode="decimal" step="0.1" min="0.2" max="30"></div><div class="field"><label for="edit-dir">Direction</label><select id="edit-dir"><option value="up">↑ Up</option><option value="down">↓ Down</option><option value="left">← Left</option><option value="right">→ Right</option><option value="front">↙ Forward</option><option value="back">↗ Back</option></select></div></div>
         <div class="grid2"><div class="field"><label for="edit-shape">Duct type</label><select id="edit-shape"><option value="rect">□ Rectangular</option><option value="round">○ Circular</option></select></div><div class="field"><label for="edit-size">Width / diameter (mm)</label><input id="edit-size" type="number" inputmode="numeric" min="100" max="2000" step="50"></div></div>
-        <div class="field" id="edit-height-row"><label for="edit-height">Rectangular height (mm)</label><input id="edit-height" type="number" inputmode="numeric" min="100" max="2000" step="50"></div><div class="field"><label for="edit-status">Cleaning status</label><select id="edit-status"><option value="notcleaned">Not cleaned (red)</option><option value="cleaned">Cleaned (green)</option></select></div>
+        <div class="field" id="edit-height-row"><label for="edit-height">Rectangular height (mm)</label><input id="edit-height" type="number" inputmode="numeric" min="100" max="2000" step="50"></div><div class="field"><label for="edit-status">Cleaning status (also for fans and outlets)</label><select id="edit-status"><option value="notcleaned">Not cleaned (red)</option><option value="cleaned">Cleaned (green)</option></select></div><div class="row" style="margin:0 0 12px"><button class="btn grow" type="button" id="mark-cleaned">✓ Mark cleaned</button><button class="btn danger grow" type="button" id="mark-not-cleaned">✕ Not cleaned</button></div>
         <div class="card" id="panel-editor"><div class="card-title">Access panels <span id="panel-count" class="chip">0</span></div>
           <div class="grid2"><div class="field"><label for="panel-face">Face</label><select id="panel-face"><option value="top">Top face</option><option value="right">Right face</option><option value="left">Left face</option><option value="bottom">Bottom face</option></select></div><div class="field"><label for="panel-at">Along section (%)</label><input type="number" id="panel-at" min="10" max="90" value="50" step="10"></div></div>
           <button class="btn outline wide" id="add-panel">＋ Add access panel</button><div id="panels-list" class="scrolllist" style="margin-top:7px"></div>
           <p class="help">Square on rectangular duct. Oval on circular duct. You can add several per section.</p></div>
         <div class="branch-control" id="tee-controls" hidden>
-          <div class="card-title">T-piece branch</div>
+          <div class="card-title">T-piece junction / branch</div>
           <div class="field"><label for="tee-branch-dir">Branch direction</label><select id="tee-branch-dir"><option value="up">↑ Up</option><option value="down">↓ Down</option><option value="left">← Left</option><option value="right">→ Right</option><option value="front">↙ Forward</option><option value="back">↗ Back</option></select></div>
-          <button class="btn main wide" type="button" id="select-tee-branch">Build from this T-piece branch</button>
-          <p class="muted-note">The main duct continues normally. Switch to the branch run to build the side connection.</p>
+          <button class="btn main wide" type="button" id="select-tee-branch">Build a new branch from T-piece</button>
+          <div class="field" style="margin-top:12px"><label for="join-source">Join another canopy outlet / run into this T-piece</label><select id="join-source"></select></div>
+          <button class="btn main wide" type="button" id="join-run">Join selected run to T-piece</button>
+          <button class="btn danger wide" type="button" id="disconnect-run" style="margin-top:6px" hidden>Disconnect joined run</button>
+          <p class="muted-note">Build two canopy outlets separately. Add this T-piece to the main run, then choose the other outlet above and join it. The builder routes a visible connection to the T. You can still continue the main run.</p>
         </div>
         <button class="btn danger wide" id="remove-segment">Remove this and later sections</button>
       </div>
-      <div id="edit-canopy" hidden><div class="card-title" id="canopy-name">Canopy</div><div class="field"><label for="canopy-width">Canopy width (metres)</label><input id="canopy-width" type="number" inputmode="decimal" min="1" max="8" step="0.1"></div><div class="row"><button class="btn main grow" id="outlet-on-selected">＋ Add outlet</button><button class="btn grow" id="select-canopy-outlet">Select first outlet</button></div><p class="help">Each canopy supports multiple separate duct outlets. A T-piece on any run also creates a new branch.</p></div>
+      <div id="edit-canopy" hidden><div class="card-title" id="canopy-name">Canopy</div><div class="field"><label for="canopy-width">Canopy width (metres)</label><input id="canopy-width" type="number" inputmode="decimal" min="1" max="8" step="0.1"></div><div class="field"><label for="canopy-status">Canopy cleaning status</label><select id="canopy-status"><option value="notcleaned">Not cleaned (red)</option><option value="cleaned">Cleaned (green)</option></select></div><div class="row"><button class="btn main grow" id="outlet-on-selected">＋ Add outlet</button><button class="btn grow" id="select-canopy-outlet">Select first outlet</button></div><p class="help">Each canopy supports multiple separate duct outlets. Multiple outlets can join at a T-piece on the shared main run.</p></div>
       <div id="edit-outlet" hidden><div class="card-title">Canopy outlet</div><p class="help">This is a separate duct run or a T-piece branch. Use Build to extend it independently.</p><button class="btn main wide" id="build-from-outlet">Build from this outlet</button></div>
     </div>
     <div class="pane" data-pane="runs"><p class="subtitle">Your complete component list. Tap any item to edit its size, length, direction and status.</p><div id="runs-list" class="scrolllist"></div></div>
-    <div class="pane" data-pane="files"><div class="grid2"><button class="btn main" id="save">Save on this phone</button><button class="btn" id="load">Load saved</button><button class="btn" id="export-png">Export PNG image</button><button class="btn" id="export-json">Backup project JSON</button><button class="btn" id="import-json">Import JSON backup</button><button class="btn danger" id="new-project">New blank project</button></div><input id="loadfile" type="file" accept="application/json,.json"><p class="help">Save uses this browser's storage, so it may disappear if Safari data is cleared. Export a JSON backup to your Files app to keep your work safely. PNG exports the drawing for your report. No account or server is required.</p><p class="help">⚠ Prototype only: schematic, not to scale. Branch runs connect to T-pieces but reconnecting two runs into one shared duct is not supported yet. No compliance or cleaning certification is implied by colouring a section.</p></div>
+    <div class="pane" data-pane="files"><div class="grid2"><button class="btn main" id="save">Save on this phone</button><button class="btn" id="load">Load saved</button><button class="btn" id="export-png">Export PNG image</button><button class="btn" id="export-json">Backup project JSON</button><button class="btn" id="import-json">Import JSON backup</button><button class="btn danger" id="new-project">New blank project</button></div><input id="loadfile" type="file" accept="application/json,.json"><p class="help">Save uses this browser's storage, so it may disappear if Safari data is cleared. Export a JSON backup to your Files app to keep your work safely. PNG exports the drawing for your report. No account or server is required.</p><p class="help">⚠ Prototype only: schematic, not to scale. Join runs through a T-piece using Edit. Automatic connections are schematic routing and must be checked against the site layout. No compliance or cleaning certification is implied by colouring a section.</p></div>
   </section>
 </div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -142,7 +145,7 @@ let runStarts=new Map();
 function panelById(id){for(const o of state.outlets){for(const s of o.segments){const p=s.panels.find(p=>p.id===id);if(p)return {o,s,p}}}return null}
 function select(kind,id,tab='edit') {state.selected={kind,id};if(kind==='outlet'){state.activeOutletId=id;const o=byId(state.outlets,id);if(o?.parentSegmentId)$('add-dir').value=o.branchDir||'right'}if(kind==='segment'){const r=segmentById(id);if(r)state.activeOutletId=r.o.id}renderUI();if(tab)setTab(tab);highlightSelection()}
 
-function addCanopy(){const maxRight=state.canopies.reduce((m,c)=>Math.max(m,c.x+(c.width*U/2)), -160);const w=3;const x=state.canopies.length ? maxRight + 230 : 0;const c={id:uid(),name:'Canopy '+(state.canopies.length+1),x,width:w};state.canopies.push(c);addOutlet(c.id,true);select('canopy',c.id,'build');render3D();fitView();toast(c.name+' added')}
+function addCanopy(){const maxRight=state.canopies.reduce((m,c)=>Math.max(m,c.x+(c.width*U/2)), -160);const w=3;const x=state.canopies.length ? maxRight + 230 : 0;const c={id:uid(),name:'Canopy '+(state.canopies.length+1),x,width:w,status:'notcleaned'};state.canopies.push(c);addOutlet(c.id,true);select('canopy',c.id,'build');render3D();fitView();toast(c.name+' added')}
 function addOutlet(canopyId,silent=false){const c=byId(state.canopies,canopyId);if(!c)return;const existing=state.outlets.filter(o=>o.canopyId===canopyId&&!o.parentSegmentId);if(existing.length>=6){toast('Maximum 6 outlets per canopy in this prototype');return}const o={id:uid(),canopyId,segments:[]};state.outlets.push(o);state.activeOutletId=o.id;state.selected={kind:'outlet',id:o.id};render3D();renderUI();if(!silent){fitView(false);toast('Another independent duct outlet added')}return o}
 function suggestedCanopyId(){if(state.selected?.kind==='canopy')return state.selected.id;if(state.selected?.kind==='outlet')return byId(state.outlets,state.selected.id)?.canopyId;if(state.selected?.kind==='segment')return segmentById(state.selected.id)?.o.canopyId;return activeOutlet()?.canopyId||state.canopies[0]?.id}
 function addComponent(which){
@@ -157,6 +160,7 @@ function addComponent(which){
  const o=activeOutlet();if(!o)return toast('Select a duct run first');
  const last=o.segments.at(-1);
  if(isTerminated(last))return toast('This run ends at an outlet. Remove it before extending.');
+ if(o.joinToSegmentId)return toast('This run is already joined into a T-piece. Disconnect it before adding more.');
  const dir=$('add-dir').value;
  const shape=which==='round'||which==='tee-round'?'round':which==='rect'||which==='tee-rect'?'rect':$('add-shape').value;
  const size=Number($('add-size').value)||500;
@@ -199,8 +203,8 @@ function editSegmentProp(prop,value){
 }
 function addPanel(){const r=segmentById(state.selected?.id);if(!r||r.s.type&&r.s.type!=='duct'){toast('Select straight ductwork first');return}const at=clamp(Number($('panel-at').value),10,90)/100;r.s.panels.push({id:uid(),at,face:$('panel-face').value});render3D();renderUI();toast('Access panel added')}
 function removePanel(id){const r=panelById(id);if(!r)return;r.s.panels=r.s.panels.filter(p=>p.id!==id);render3D();renderUI();toast('Access panel removed')}
-function removeSelectedSegment(){const r=segmentById(state.selected?.id);if(!r)return;if(!confirm('Remove this duct section and every section after it on this run?'))return;const removed=r.o.segments.splice(r.index);const removeIds=new Set(removed.map(s=>s.id));let changed=true;while(changed){changed=false;for(const out of state.outlets){if(out.parentSegmentId&&removeIds.has(out.parentSegmentId)){for(const child of out.segments)removeIds.add(child.id);changed=true;out._delete=true}}state.outlets=state.outlets.filter(o=>!o._delete)}state.selected={kind:'outlet',id:r.o.id};render3D();renderUI();toast('Run trimmed')}
-function labelOutlet(o){const c=canopyForOutlet(o);if(o.parentSegmentId){const r=segmentById(o.parentSegmentId);return `${c?.name||'Canopy'} · T-branch from ${r?segmentName(r.s)+' '+(r.index+1):'T-piece'}`}const siblings=state.outlets.filter(x=>x.canopyId===o.canopyId&&!x.parentSegmentId);return `${c?.name||'Canopy'} · outlet ${siblings.indexOf(o)+1}`}
+function removeSelectedSegment(){const r=segmentById(state.selected?.id);if(!r)return;if(!confirm('Remove this duct section and every section after it on this run?'))return;const removed=r.o.segments.splice(r.index);const removeIds=new Set(removed.map(s=>s.id));let changed=true;while(changed){changed=false;for(const out of state.outlets){if(out.parentSegmentId&&removeIds.has(out.parentSegmentId)){for(const child of out.segments)removeIds.add(child.id);changed=true;out._delete=true}}state.outlets=state.outlets.filter(o=>!o._delete)}for(const out of state.outlets){if(removeIds.has(out.joinToSegmentId))delete out.joinToSegmentId}state.selected={kind:'outlet',id:r.o.id};render3D();renderUI();fitView(false);toast('Run trimmed')}
+function labelOutlet(o){const c=canopyForOutlet(o);if(o.parentSegmentId){const r=segmentById(o.parentSegmentId);return `${c?.name||'Canopy'} · T-branch from ${r?segmentName(r.s)+' '+(r.index+1):'T-piece'}`}const siblings=state.outlets.filter(x=>x.canopyId===o.canopyId&&!x.parentSegmentId);return `${c?.name||'Canopy'} · outlet ${siblings.indexOf(o)+1}${o.joinToSegmentId?' (joined)':''}`}
 function outletPosition(o){
  if(o.parentSegmentId&&runStarts.has(o.id))return runStarts.get(o.id).clone();
  const c=canopyForOutlet(o);if(!c)return new THREE.Vector3();
@@ -231,13 +235,13 @@ function layoutRuns(){
 
 function setTab(name){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('active',x.dataset.pane===name))}
 function renderUI(){
- $('build-run').innerHTML='';for(const o of state.outlets){const op=document.createElement('option');op.value=o.id;op.textContent=labelOutlet(o);$('build-run').appendChild(op)}$('build-run').value=state.activeOutletId||'';
+ $('build-run').innerHTML='';for(const o of state.outlets){if(o.parentSegmentId&&state.outlets.some(x=>x.joinToSegmentId===o.parentSegmentId))continue;const op=document.createElement('option');op.value=o.id;op.textContent=labelOutlet(o);$('build-run').appendChild(op)}$('build-run').value=state.activeOutletId||'';
  const sel=state.selected;const seg=sel?.kind==='segment'?segmentById(sel.id):null;
  $('edit-none').hidden=!!sel;$('edit-segment').hidden=!seg;$('edit-canopy').hidden=sel?.kind!=='canopy';$('edit-outlet').hidden=sel?.kind!=='outlet';
- if(seg){const {s,o,index}=seg;$('edit-name').textContent=`${segmentName(s)} ${index+1} · ${segmentSize(s)} · ${formatMetres(s.length)} m`; $('add-shape').value=s.shape;$('edit-length').value=s.length;$('edit-dir').value=s.dir;$('edit-shape').value=s.shape;$('edit-size').value=s.size;$('edit-height').value=s.height||Math.round(s.size*.68);$('edit-height-row').hidden=s.shape==='round';$('edit-status').value=s.status;$('tee-controls').hidden=s.type!=='tee';if(s.type==='tee'){$('tee-branch-dir').value=s.branchDir||defaultBranchDir(s.dir)}$('panel-editor').hidden=s.type!=='duct';$('panel-count').textContent=s.panels.length+' panels';const host=$('panels-list');host.replaceChildren();s.panels.forEach((p,i)=>{const b=document.createElement('div');b.className='row';const txt=document.createElement('div');txt.className='grow';txt.style.fontSize='12px';txt.textContent=`${i+1}. ${s.shape==='rect'?'Square':'Oval'} access panel · ${p.face} · ${Math.round(p.at*100)}% along`;const btn=document.createElement('button');btn.className='btn small danger';btn.textContent='Remove';btn.addEventListener('click',()=>removePanel(p.id));b.append(txt,btn);host.appendChild(b)})}
- if(sel?.kind==='canopy'){const c=byId(state.canopies,sel.id);if(c){$('canopy-name').textContent=c.name;$('canopy-width').value=c.width}}
+ if(seg){const {s,o,index}=seg;$('edit-name').textContent=`${segmentName(s)} ${index+1} · ${segmentSize(s)} · ${formatMetres(s.length)} m`; $('add-shape').value=s.shape;$('edit-length').value=s.length;$('edit-dir').value=s.dir;$('edit-shape').value=s.shape;$('edit-size').value=s.size;$('edit-height').value=s.height||Math.round(s.size*.68);$('edit-height-row').hidden=s.shape==='round';$('edit-status').value=s.status;$('tee-controls').hidden=s.type!=='tee';if(s.type==='tee'){$('tee-branch-dir').value=s.branchDir||defaultBranchDir(s.dir);updateJoinControls(s.id)}$('panel-editor').hidden=s.type!=='duct';$('panel-count').textContent=s.panels.length+' panels';const host=$('panels-list');host.replaceChildren();s.panels.forEach((p,i)=>{const b=document.createElement('div');b.className='row';const txt=document.createElement('div');txt.className='grow';txt.style.fontSize='12px';txt.textContent=`${i+1}. ${s.shape==='rect'?'Square':'Oval'} access panel · ${p.face} · ${Math.round(p.at*100)}% along`;const btn=document.createElement('button');btn.className='btn small danger';btn.textContent='Remove';btn.addEventListener('click',()=>removePanel(p.id));b.append(txt,btn);host.appendChild(b)})}
+ if(sel?.kind==='canopy'){const c=byId(state.canopies,sel.id);if(c){$('canopy-name').textContent=c.name;$('canopy-width').value=c.width;$('canopy-status').value=c.status==='cleaned'?'cleaned':'notcleaned'}}
  const list=$('runs-list');list.replaceChildren();
- for(const c of state.canopies){appendItem(list,`▣ ${c.name}`,`${c.width}m canopy · ${state.outlets.filter(o=>o.canopyId===c.id).length} outlet(s)`,'canopy',c.id);for(const o of state.outlets.filter(o=>o.canopyId===c.id)){appendItem(list,o.parentSegmentId?'　↳ T-piece branch':`　↳ Outlet ${state.outlets.filter(a=>a.canopyId===c.id&&!a.parentSegmentId).indexOf(o)+1}`,`${o.segments.length} section(s)${o.id===state.activeOutletId?' · active':''}`,'outlet',o.id);o.segments.forEach((s,i)=>appendItem(list,`　　 ${i+1}. ${segmentName(s)}`,`${segmentSize(s)} · ${formatMetres(s.length)} m · ${s.dir} · ${s.status==='cleaned'?'cleaned':'not cleaned'}${s.type==='duct'?' · '+s.panels.length+' panels':''}`,'segment',s.id))}}
+ for(const c of state.canopies){appendItem(list,`▣ ${c.name}`,`${c.width}m canopy · ${c.status==='cleaned'?'cleaned':'not cleaned'} · ${state.outlets.filter(o=>o.canopyId===c.id&&!o.parentSegmentId).length} outlet(s)`,'canopy',c.id);for(const o of state.outlets.filter(o=>o.canopyId===c.id&&!(o.parentSegmentId&&state.outlets.some(x=>x.joinToSegmentId===o.parentSegmentId)))){appendItem(list,o.parentSegmentId?'　↳ T-piece branch':`　↳ Outlet ${state.outlets.filter(a=>a.canopyId===c.id&&!a.parentSegmentId).indexOf(o)+1}`,`${o.segments.length} section(s)${o.joinToSegmentId?' · joined into T-piece':''}${o.id===state.activeOutletId?' · active':''}`,'outlet',o.id);o.segments.forEach((s,i)=>appendItem(list,`　　 ${i+1}. ${segmentName(s)}`,`${segmentSize(s)} · ${formatMetres(s.length)} m · ${s.dir} · ${s.status==='cleaned'?'cleaned':'not cleaned'}${s.type==='duct'?' · '+s.panels.length+' panels':''}`,'segment',s.id))}}
  $('hudline').textContent=(activeOutlet()?labelOutlet(activeOutlet()):'No active run')+' · '+(activeOutlet()?.segments.length||0)+' sections';
 }
 function appendItem(host,title,details,kind,id){const b=document.createElement('button');b.type='button';b.className='item'+(state.selected?.kind===kind&&state.selected.id===id?' active':'');const strong=document.createElement('span');strong.textContent=title;const sub=document.createElement('span');sub.className='meta';sub.textContent=details;b.append(strong,sub);b.addEventListener('click',()=>select(kind,id,'edit'));host.appendChild(b)}
@@ -290,9 +294,9 @@ function toggleLabels(){labelsVisible=!labelsVisible;labelGroup.visible=labelsVi
 function material(color,metalness=.12){return new THREE.MeshStandardMaterial({color,metalness,roughness:.55,side:THREE.DoubleSide})}
 function meshBox(w,h,l,color){return new THREE.Mesh(new THREE.BoxGeometry(Math.max(1,w),Math.max(1,h),Math.max(1,l)),material(color))}
 function makeCanopy(c){
- const width=c.width*U;const body=meshBox(width,56,95,PALETTE.canopy);
+ const width=c.width*U;const body=meshBox(width,56,95,PALETTE[c.status==='cleaned'?'cleaned':'notcleaned']);
  body.position.set(c.x,24,0);sceneGroup.add(body);addPick(body,'canopy',c.id);
- createSceneLabel(c.name,`${formatMetres(c.width)} m wide`,new THREE.Vector3(c.x,65,0),new THREE.Vector3(0,35,75));
+ createSceneLabel(c.name,`${formatMetres(c.width)} m · ${c.status==='cleaned'?'cleaned':'not cleaned'}`,new THREE.Vector3(c.x,65,0),new THREE.Vector3(0,35,75));
 }
 function makeOutletMarker(o){
  if(o.parentSegmentId)return;
@@ -322,21 +326,64 @@ function taperedCylinder(group,rBack,rFront,length,at,color){
  g.rotateX(Math.PI/2);const m=new THREE.Mesh(g,material(color));m.position.z=at;group.add(m);return m;
 }
 function birdBeakShape(isRound,width,height,length,color){
- // Open back and angled front mouth. Local +Z points towards the discharge.
- const sides=isRound?36:4;const vertices=[],indices=[];
- for(let i=0;i<sides;i++){
-  let x,y;
-  if(isRound){const a=i/sides*Math.PI*2;x=Math.cos(a)*width/2;y=Math.sin(a)*height/2}
-  else {const corners=[[-1,-1],[1,-1],[1,1],[-1,1]];[x,y]=corners[i].map((v,j)=>v*(j?height:width)/2)}
-  const cut=(y/Math.max(height/2,1))*(length*.44);
-  vertices.push(x,y,-length/2,x,y,length/2+cut);
+ // A straight, constant-section duct cut diagonally at the discharge end:
+ // the back (-Z) stays square to the duct so it joins normally.
+ // The front is a single flat angled cut — NOT a tapered cone or an elbow.
+ const n=isRound?64:4, outline=[], outer=[], inner=[], rim=[];
+ const rear=-length/2, forward=length/2;
+ const cutDepth=length*.78;
+ const wall=isRound?Math.max(1.1,Math.min(width*.06,3)):Math.max(1.1,Math.min(Math.min(width,height)*.065,3));
+ for(let i=0;i<n;i++){
+   let x,y,ix,iy;
+   if(isRound){
+     const t=2*Math.PI*i/n;
+     x=Math.cos(t)*width/2;y=Math.sin(t)*height/2;
+     ix=Math.cos(t)*(width/2-wall);iy=Math.sin(t)*(height/2-wall);
+   }else{
+     const corners=[[-1,-1],[1,-1],[1,1],[-1,1]];
+     const [sx,sy]=corners[i];
+     x=sx*width/2;y=sy*height/2;
+     ix=sx*(width/2-wall);iy=sy*(height/2-wall);
+   }
+   // All front-edge points lie on the same angled cutting plane.
+   const tipZ=forward-cutDepth*(.5-y/height);
+   const innerTipZ=forward-cutDepth*(.5-iy/height);
+   outline.push({x,y,ix,iy,tipZ,innerTipZ});
  }
- for(let i=0;i<sides;i++){
-  const next=(i+1)%sides,a=i*2,b=next*2;
-  indices.push(a,b,a+1,b,b+1,a+1);
+ function sideSurface(which){
+   const verts=[],tris=[];
+   for(const p of outline){
+     const x=which==='inner'?p.ix:p.x;
+     const y=which==='inner'?p.iy:p.y;
+     const z=which==='inner'?p.innerTipZ:p.tipZ;
+     verts.push(x,y,rear,x,y,z);
+   }
+   for(let i=0;i<n;i++){
+     const j=(i+1)%n,a=i*2,b=j*2;
+     if(which==='inner')tris.push(a,a+1,b,b,a+1,b+1);
+     else tris.push(a,b,a+1,b,b+1,a+1);
+   }
+   const g=new THREE.BufferGeometry();
+   g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+   g.setIndex(tris);g.computeVertexNormals();return g;
  }
- const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geo.setIndex(indices);geo.computeVertexNormals();
- return new THREE.Mesh(geo,material(color));
+ function mouthRim(){
+   const verts=[],tris=[];
+   for(const p of outline)verts.push(p.x,p.y,p.tipZ,p.ix,p.iy,p.innerTipZ);
+   for(let i=0;i<n;i++){
+     const j=(i+1)%n,a=i*2,b=j*2;
+     tris.push(a,b,a+1,b,b+1,a+1);
+   }
+   const g=new THREE.BufferGeometry();
+   g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+   g.setIndex(tris);g.computeVertexNormals();return g;
+ }
+ const assembly=new THREE.Group();
+ assembly.add(new THREE.Mesh(sideSurface('outer'),material(color)));
+ const lining=new THREE.Mesh(sideSurface('inner'),material(new THREE.Color(color).multiplyScalar(.55)));
+ assembly.add(lining);
+ assembly.add(new THREE.Mesh(mouthRim(),material(new THREE.Color(color).multiplyScalar(.72))));
+ return assembly;
 }
 function addComponentDetails(group,s,cross,len){
  const type=s.type||'duct';if(type==='duct')return;
@@ -348,8 +395,8 @@ function addComponentDetails(group,s,cross,len){
  const mesh=(geo,color=col)=>{const m=new THREE.Mesh(geo,material(color));group.add(m);addPick(m,'segment',s.id);return m};
  const block=(w,h,l)=>mesh(new THREE.BoxGeometry(w,h,l));
  if(type==='axialfan'||type==='fan'||type==='silencer'){
-  if(round){const m=simpleCylinder(group,cross*.61,len,col);addPick(m,'segment',s.id)}
-  else block(cross*1.22,height*1.22,len);
+  if(round){const m=simpleCylinder(group,(cross+(type==='silencer'?5:0))/2,len,col);addPick(m,'segment',s.id)}
+  else block(cross+(type==='silencer'?5:0),height+(type==='silencer'?5:0),len);
   if(type!=='silencer')wordOnBody(group,'AXIAL FAN',Math.min(cross*1.05,108),20);
  }else if(type==='boxfan'||type==='box'){
   block(Math.max(cross*1.28,52),Math.max(height*1.4,46),len);
@@ -379,7 +426,9 @@ function addComponentDetails(group,s,cross,len){
   const cap=mesh(new THREE.ConeGeometry(cross*.98,len*.30,4,1),col);
   cap.rotation.x=Math.PI/2;cap.rotation.y=Math.PI/4;cap.position.z=len*.32;
  }else if(type==='birdbeak'){
-  mesh(birdBeakShape(round,cross,height,len,col));
+  const beak=birdBeakShape(round,cross,height,len,col);
+  group.add(beak);
+  beak.traverse(item=>{if(item.isMesh)addPick(item,'segment',s.id)});
  }else if(type==='terminal'){
   if(round){const m=simpleCylinder(group,cross*.52,len,col);addPick(m,'segment',s.id)}else block(cross,height,len);
  }else{
@@ -407,14 +456,37 @@ function makePanel(group,s,p,length){const size=s.size/10;const g=panelGroup(p.f
  const anchor=group.localToWorld(g.position.clone());
  createSceneLabel(`${s.shape==='rect'?'Square':'Oval'} access panel`,`${p.face} face · ${Math.round(p.at*100)}% along`,anchor,new THREE.Vector3(32,18,55));
 }
-function makeElbow(pivot,da,db,prev,next,r){const pin=pivot.clone().addScaledVector(da,-r),pout=pivot.clone().addScaledVector(db,r);const curve=new THREE.QuadraticBezierCurve3(pin,pivot,pout);const color=PALETTE[prev.status];if(prev.shape==='round'&&next.shape==='round'){
-  const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,14,prev.size/20,22,false),material(color));sceneGroup.add(mesh);addPick(mesh,'segment',prev.id);return;
+function makeElbow(pivot,da,db,prev,next,r){
+ // Swept 90° duct elbow: curved centreline and constant cross section at every angle.
+ // The bend-plane basis is fixed, preventing rectangular elbows from twisting.
+ const pin=pivot.clone().addScaledVector(da,-r),pout=pivot.clone().addScaledVector(db,r);
+ const curve=new THREE.QuadraticBezierCurve3(pin,pivot,pout);
+ const color=PALETTE[prev.status]||PALETTE.notcleaned;
+ const round=prev.shape==='round'&&next.shape==='round';
+ const pickId=prev.id;
+ if(round){
+  const radius=prev.size/20;
+  const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,36,radius,32,false),material(color));sceneGroup.add(mesh);addPick(mesh,'segment',pickId);
+  return;
  }
- // Extruded rectangular cross-section following the curved elbow centreline.
- const W=prev.size/10,H=prev.shape==='round'?W:(prev.height||prev.size*.68)/10;const frames=[],vertices=[],indices=[];
- for(let i=0;i<=12;i++){const t=i/12;const p=curve.getPoint(t),d=curve.getTangent(t).normalize();let up=Math.abs(d.y)>.92?new THREE.Vector3(0,0,1):new THREE.Vector3(0,1,0);const right=new THREE.Vector3().crossVectors(up,d).normalize();up=new THREE.Vector3().crossVectors(d,right).normalize();const corners=[[-1,-1],[1,-1],[1,1],[-1,1]];for(const [a,b] of corners){const v=p.clone().addScaledVector(right,a*W/2).addScaledVector(up,b*H/2);vertices.push(v.x,v.y,v.z)}frames.push(p)}
- for(let i=0;i<12;i++)for(let j=0;j<4;j++){const a=i*4+j,b=i*4+(j+1)%4,c=(i+1)*4+j,d=(i+1)*4+(j+1)%4;indices.push(a,b,c,b,d,c)}
- const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();const mesh=new THREE.Mesh(geometry,material(color));sceneGroup.add(mesh);addPick(mesh,'segment',prev.id)
+ const W=prev.size/10,H=(prev.shape==='round'?prev.size:(prev.height||prev.size*.68))/10;
+ const bendNormal=new THREE.Vector3().crossVectors(da,db).normalize();
+ const side=bendNormal.lengthSq()<.01?new THREE.Vector3(0,0,1):bendNormal;
+ const vertices=[],indices=[],steps=32;
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,p=curve.getPoint(t),tangent=curve.getTangent(t).normalize();
+  const radial=new THREE.Vector3().crossVectors(side,tangent).normalize();
+  for(const [u,v] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
+   const pt=p.clone().addScaledVector(side,u*W/2).addScaledVector(radial,v*H/2);
+   vertices.push(pt.x,pt.y,pt.z);
+  }
+ }
+ for(let i=0;i<steps;i++)for(let j=0;j<4;j++){
+  const a=i*4+j,b=i*4+(j+1)%4,c=(i+1)*4+j,d=(i+1)*4+(j+1)%4;
+  indices.push(a,b,c,b,d,c);
+ }
+ const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();
+ const mesh=new THREE.Mesh(geometry,material(color));sceneGroup.add(mesh);addPick(mesh,'segment',pickId);
 }
 // Tapered automatic transitions between adjacent widths/heights/diameters.
 // Handles round↔round, rect↔rect and round↔rect, using 32-point section rings.
@@ -443,6 +515,103 @@ function makeReducer(a,b,start,end){
  const m=new THREE.Mesh(geo,material(PALETTE[a.status]));m.position.copy(start).add(end).multiplyScalar(.5);m.quaternion.copy(q);sceneGroup.add(m);addPick(m,'segment',b.id);
 }
 function sizeDiffers(a,b){return a.shape!==b.shape||a.size!==b.size||(a.shape==='rect'&&(a.height||Math.round(a.size*.68))!==(b.height||Math.round(b.size*.68)))}
+// A canopy outlet run can terminate into the side port of a T-piece on a separate main run.
+// The join route is computed from actual endpoints each render, so editing duct lengths keeps it connected.
+function joinOptions(teeId){
+ const parent=segmentById(teeId);
+ if(!parent)return [];
+ const used=new Set(state.outlets.filter(o=>o.joinToSegmentId&&o.joinToSegmentId!==teeId).map(o=>o.id));
+ return state.outlets.filter(o=>!o.parentSegmentId && o.id!==parent.o.id && !used.has(o.id) && !o.segments.some(s=>s.id===teeId));
+}
+function updateJoinControls(teeId){
+ const dropdown=$('join-source'),active=state.outlets.find(o=>o.joinToSegmentId===teeId);
+ dropdown.replaceChildren();
+ for(const o of joinOptions(teeId)){
+  const option=document.createElement('option');option.value=o.id;option.textContent=labelOutlet(o);dropdown.appendChild(option);
+ }
+ if(active)dropdown.value=active.id;
+ $('join-run').disabled=!!active||!dropdown.options.length;
+ $('join-run').textContent=active?'Run joined to this T-piece':'Join selected run to T-piece';
+ $('disconnect-run').hidden=!active;
+ const branch=state.outlets.find(o=>o.parentSegmentId===teeId);
+ $('select-tee-branch').disabled=!!active;
+}
+function joinToTee(){
+ const tee=segmentById(state.selected?.id);
+ if(!tee||tee.s.type!=='tee')return toast('Select a T-piece first');
+ const source=byId(state.outlets,$('join-source').value);
+ if(!source||source.parentSegmentId||source.id===tee.o.id)return toast('Choose a different canopy outlet run');
+ if(source.joinToSegmentId)return toast('This outlet is already joined');
+ if(source.segments.some(s=>s.type==='tee'))return toast('For now, join an outlet run without its own T-piece');
+ if(isTerminated(source.segments.at(-1)))return toast('Remove the discharge outlet from the run before joining');
+ if(state.outlets.some(o=>o.joinToSegmentId===tee.s.id))return toast('This T-piece already has a joined outlet');
+ const branch=state.outlets.find(o=>o.parentSegmentId===tee.s.id);
+ if(branch?.segments.length)return toast('This T-piece already has a built branch. Use a fresh T-piece to join.');
+ source.joinToSegmentId=tee.s.id;
+ render3D();renderUI();fitView(false);toast('Two outlet runs joined at the T-piece');
+}
+function disconnectTee(){
+ const teeId=state.selected?.id;
+ const source=state.outlets.find(o=>o.joinToSegmentId===teeId);
+ if(!source)return toast('No run joined here');
+ delete source.joinToSegmentId;
+ render3D();renderUI();fitView(false);toast('Joined outlet disconnected');
+}
+function makeJoinRoute(outlet){
+ const target=segmentById(outlet.joinToSegmentId);
+ if(!target||target.s.type!=='tee')return;
+ const tee=segmentNodes.get(target.s.id);
+ if(!tee)return;
+ const sourceEnd=outlet.segments.length?segmentNodes.get(outlet.segments.at(-1).id)?.end:outletPosition(outlet);
+ if(!sourceEnd)return;
+ const base=outlet.segments.at(-1)||{shape:target.s.shape,size:target.s.size,height:target.s.height,status:canopyForOutlet(outlet)?.status||'notcleaned',id:target.s.id};
+ const bd=dirVector(target.s.branchDir||defaultBranchDir(target.s.dir));
+ const targetPoint=tee.start.clone().lerp(tee.end,.5).addScaledVector(bd,Math.max(20,target.s.size/10*.8)*.9);
+ const points=[sourceEnd.clone()];
+ // Extend first in the direction of the existing outlet before turning, if safe.
+ let cursor=sourceEnd.clone();
+ const lastDir=outlet.segments.at(-1)?.dir||'up';
+ const escape=dirVector(lastDir);const forwardDistance=targetPoint.clone().sub(cursor).dot(escape);
+ if(forwardDistance>38 && Math.abs(escape.dot(bd))<.5){cursor.addScaledVector(escape,Math.min(42,forwardDistance*.35));points.push(cursor.clone())}
+ // Move across all axes perpendicular to the tee side port, then approach along its branch axis.
+ for(const axis of ['y','z','x']){
+  if(Math.abs(bd[axis])>.5)continue;
+  if(Math.abs(targetPoint[axis]-cursor[axis])>2){cursor=new THREE.Vector3().copy(cursor);cursor[axis]=targetPoint[axis];points.push(cursor.clone())}
+ }
+ if(cursor.distanceTo(targetPoint)>2)points.push(targetPoint.clone());
+ const cleanPoints=[points[0]];
+ for(let i=1;i<points.length;i++)if(points[i].distanceTo(cleanPoints.at(-1))>2)cleanPoints.push(points[i]);
+ // draw each connector leg, trimming both sides of each corner to place a swept elbow
+ const legs=[];
+ for(let i=0;i<cleanPoints.length-1;i++){
+  const a=cleanPoints[i],b=cleanPoints[i+1],d=b.clone().sub(a).normalize(),len=a.distanceTo(b);
+  if(len>2)legs.push({a,b,d,len});
+ }
+ if(!legs.length)return;
+ const dummy={id:base.id,shape:base.shape,size:base.size,height:base.height,status:base.status,panels:[],type:'duct'};
+ const rad=[];
+ for(let i=0;i<legs.length-1;i++)rad[i]=Math.abs(legs[i].d.dot(legs[i+1].d))<.5?Math.min(24,legs[i].len*.22,legs[i+1].len*.22):0;
+ legs.forEach((leg,i)=>{
+  const from=leg.a.clone().addScaledVector(leg.d,i?rad[i-1]:0);
+  const end=leg.b.clone().addScaledVector(leg.d,-(i<rad.length?rad[i]:0));
+  const available=from.distanceTo(end);
+  // When joining a different duct size, taper the last leg to meet the T-piece port.
+  const reduce=i===legs.length-1&&sizeDiffers(dummy,target.s)&&available>16;
+  const taperLength=reduce?Math.min(35,available*.55):0;
+  const normalEnd=end.clone().addScaledVector(leg.d,-taperLength);
+  if(from.distanceTo(normalEnd)>1){const m=from.clone().lerp(normalEnd,.5);const l=from.distanceTo(normalEnd);let mesh;
+   if(dummy.shape==='round'){mesh=new THREE.Mesh(new THREE.CylinderGeometry(dummy.size/20,dummy.size/20,l,28),material(PALETTE[dummy.status]));mesh.geometry.rotateX(Math.PI/2)}
+   else mesh=meshBox(dummy.size/10,(dummy.height||dummy.size*.68)/10,l,PALETTE[dummy.status]);
+   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),leg.d);mesh.position.copy(m);sceneGroup.add(mesh);addPick(mesh,'outlet',outlet.id);
+  }
+  if(reduce)makeReducer(dummy,target.s,normalEnd,end);
+  if(i<rad.length&&rad[i]){
+   const prev={...dummy,id:base.id},next={...dummy};makeElbow(leg.b,leg.d,legs[i+1].d,prev,next,rad[i]);
+  }
+ });
+ const mid=cleanPoints[Math.floor(cleanPoints.length/2)];
+ createSceneLabel('Joined outlet',`${labelOutlet(outlet)} → T-piece`,mid,new THREE.Vector3(40,42,30));
+}
 function render3D(){
  clearSceneLabels();
  for(const obj of [...sceneGroup.children]){sceneGroup.remove(obj);obj.traverse(x=>{if(x.geometry)x.geometry.dispose();if(x.material){if(Array.isArray(x.material))x.material.forEach(y=>y.dispose());else x.material.dispose()}})}
@@ -455,7 +624,7 @@ function render3D(){
   const radii=[],transitions=[];
   for(let i=0;i<nodes.length-1;i++){
    const a=nodes[i],b=nodes[i+1],turn=a.s.dir!==b.s.dir;
-   radii[i]=turn?Math.min(28,a.s.length*U*.23,b.s.length*U*.23):0;
+   radii[i]=turn?Math.min(68,Math.max(25,Math.max(a.s.size,b.s.size)/10*.72),a.s.length*U*.4,b.s.length*U*.4):0;
    transitions[i]=sizeDiffers(a.s,b.s)?Math.min(36,a.s.length*U*.28,b.s.length*U*.28):0;
   }
   nodes.forEach((n,i)=>{
@@ -466,7 +635,7 @@ function render3D(){
    const end=n.end.clone().addScaledVector(d,-(nextTurn||nextTransition*.5));
    addDuctStraight(o,n.s,i,start,end);
    const mid=n.start.clone().lerp(n.end,.5);
-   createSceneLabel(`${segmentName(n.s)} ${i+1}`,`${segmentSize(n.s)} · ${formatMetres(n.s.length)} m`,mid,new THREE.Vector3(i%2? -58:52,32+i%3*14,40));
+   createSceneLabel(`${segmentName(n.s)} ${i+1}`,`${segmentSize(n.s)} · ${formatMetres(n.s.length)} m · ${n.s.status==='cleaned'?'CLEANED':'NOT CLEANED'}`,mid,new THREE.Vector3(i%2? -58:52,32+i%3*14,40));
    if(after){
     const nextD=dirVector(after.s.dir),turn=!!radii[i];
     if(turn){
@@ -482,6 +651,7 @@ function render3D(){
    }
   });
  }
+ for(const o of state.outlets)if(o.joinToSegmentId)makeJoinRoute(o);
  highlightSelection();
 }
 function highlightSelection(){const sel=state.selected;for(const m of pickMeshes){if(!m.isMesh)continue;const p=m.userData.pick;if(!p)continue;if(!m.material?.emissive)continue;m.material.emissive.setHex(sel&&p.kind===sel.kind&&p.id===sel.id?0x354b0c:0x000000);m.material.emissiveIntensity=.7}}
@@ -517,8 +687,8 @@ function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=doc
 function exportImage(){const w=1400,h=1100;const prevW=viewer.clientWidth,prevH=viewer.clientHeight,prevAspect=camera.aspect,prevRatio=renderer.getPixelRatio();renderer.setPixelRatio(1);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();scaleSceneLabels(true);renderer.render(scene,camera);const image=renderer.domElement.toDataURL('image/png');renderer.setPixelRatio(prevRatio);renderer.setSize(prevW,prevH,false);camera.aspect=prevAspect;camera.updateProjectionMatrix();scaleSceneLabels();const pic=new Image();pic.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h+130;const ctx=c.getContext('2d');ctx.fillStyle='#10171a';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#e9f2e6';ctx.font='bold 32px Arial';ctx.fillText('VENTA-CLEAN SW  |  EXTRACT SCHEMATIC',36,52);ctx.font='19px Arial';ctx.fillStyle='#a6bba9';ctx.fillText(`${state.canopies.length} canopy(s)   ·   ${state.outlets.length} outlet(s)   ·   schematic, not to scale`,36,89);ctx.drawImage(pic,0,110);c.toBlob(b=>downloadBlob(b,'venta-clean-schematic.png'),'image/png');toast('PNG image prepared')};pic.src=image}
 function snapshot(){return JSON.stringify(state,(key,value)=>value)}
 function validData(d){return d&&d.version===2&&Array.isArray(d.canopies)&&Array.isArray(d.outlets)&&typeof d.idCounter==='number'}
-function loadSnapshot(raw){const d=JSON.parse(raw);if(!validData(d))throw Error('Not a version 2 schematic');for(const o of d.outlets||[])for(const s of o.segments||[]){if(s.status==='unassessed')s.status='notcleaned';if(!s.type)s.type='duct';if(!s.height)s.height=Math.round(s.size*.68)}for(const o of d.outlets||[])if(o.parentSegmentId&&!o.branchDir){const r=(d.outlets||[]).flatMap(x=>x.segments).find(s=>s.id===o.parentSegmentId);o.branchDir=r?.branchDir||defaultBranchDir(r?.dir||'up')}state=d;state.selected=null;state.activeOutletId=byId(state.outlets,state.activeOutletId)?state.activeOutletId:state.outlets[0]?.id||null;render3D();renderUI();fitView()}
-function newProject(){state={version:2,idCounter:0,canopies:[],outlets:[],activeOutletId:null,selected:null};const c={id:uid(),name:'Canopy 1',x:0,width:3};state.canopies.push(c);addOutlet(c.id,true);state.selected={kind:'outlet',id:state.activeOutletId};render3D();renderUI();fitView()}
+function loadSnapshot(raw){const d=JSON.parse(raw);if(!validData(d))throw Error('Not a version 2 schematic');for(const o of d.outlets||[])for(const s of o.segments||[]){if(s.status==='unassessed')s.status='notcleaned';if(!s.type)s.type='duct';if(!s.height)s.height=Math.round(s.size*.68)}for(const o of d.outlets||[])if(o.parentSegmentId&&!o.branchDir){const r=(d.outlets||[]).flatMap(x=>x.segments).find(s=>s.id===o.parentSegmentId);o.branchDir=r?.branchDir||defaultBranchDir(r?.dir||'up')}for(const c of d.canopies)c.status=c.status==='cleaned'?'cleaned':'notcleaned';for(const o of d.outlets)if(o.joinToSegmentId&&!d.outlets.some(parent=>parent.segments.some(seg=>seg.id===o.joinToSegmentId&&seg.type==='tee')))delete o.joinToSegmentId;state=d;state.selected=null;state.activeOutletId=byId(state.outlets,state.activeOutletId)?state.activeOutletId:state.outlets[0]?.id||null;render3D();renderUI();fitView()}
+function newProject(){state={version:2,idCounter:0,canopies:[],outlets:[],activeOutletId:null,selected:null};const c={id:uid(),name:'Canopy 1',x:0,width:3,status:'notcleaned'};state.canopies.push(c);addOutlet(c.id,true);state.selected={kind:'outlet',id:state.activeOutletId};render3D();renderUI();fitView()}
 
 // Events
 for(const tab of document.querySelectorAll('.tab'))tab.addEventListener('click',()=>setTab(tab.dataset.tab));
@@ -529,13 +699,18 @@ $('build-run').addEventListener('change',e=>select('outlet',e.target.value,'buil
 $('add-duct').addEventListener('click',addSection);
 $('add-shape').addEventListener('change',e=>{$('add-size-label').textContent=e.target.value==='round'?'Diameter (mm)':'Duct width (mm)';$('build-height-row').hidden=e.target.value==='round'});
 for(const prop of ['length','dir','shape','size','height','status'])$('edit-'+prop).addEventListener('change',e=>editSegmentProp(prop,e.target.value));
+$('mark-cleaned').addEventListener('click',()=>editSegmentProp('status','cleaned'));
+$('mark-not-cleaned').addEventListener('click',()=>editSegmentProp('status','notcleaned'));
 $('add-panel').addEventListener('click',addPanel);
 $('remove-segment').addEventListener('click',removeSelectedSegment);
+$('canopy-status').addEventListener('change',e=>{const c=byId(state.canopies,state.selected?.id);if(!c)return;c.status=e.target.value;render3D();renderUI();toast('Canopy marked '+(c.status==='cleaned'?'cleaned':'not cleaned'))});
 $('canopy-width').addEventListener('change',e=>{const c=byId(state.canopies,state.selected?.id),n=Number(e.target.value);if(!c)return;if(!(n>=1&&n<=8)){toast('Width must be 1–8m');renderUI();return}c.width=n;render3D();fitView()});
 $('outlet-on-selected').addEventListener('click',()=>{addOutlet(state.selected?.id);setTab('build')});
 $('select-canopy-outlet').addEventListener('click',()=>{const o=state.outlets.find(x=>x.canopyId===state.selected?.id);if(o)select('outlet',o.id,'build')});
 $('build-from-outlet').addEventListener('click',()=>setTab('build'));
-$('select-tee-branch').addEventListener('click',()=>{const branch=state.outlets.find(o=>o.parentSegmentId===state.selected?.id);if(branch)select('outlet',branch.id,'build');else toast('T-piece branch not found')});
+$('join-run').addEventListener('click',joinToTee);
+$('disconnect-run').addEventListener('click',disconnectTee);
+$('select-tee-branch').addEventListener('click',()=>{const branch=state.outlets.find(o=>o.parentSegmentId===state.selected?.id);if(branch&&!state.outlets.some(o=>o.joinToSegmentId===state.selected?.id))select('outlet',branch.id,'build');else toast('Disconnect the joined run before building a separate branch')});
 $('tee-branch-dir').addEventListener('change',e=>{const r=segmentById(state.selected?.id);if(!r||r.s.type!=='tee')return;if(Math.abs(dirVector(e.target.value).dot(dirVector(r.s.dir)))>0.1){toast('Branch must be perpendicular to main duct');renderUI();return}r.s.branchDir=e.target.value;const b=state.outlets.find(o=>o.parentSegmentId===r.s.id);if(b)b.branchDir=e.target.value;render3D();renderUI();fitView(false)});
 $('focus-btn').addEventListener('click',()=>fitView(true));
 $('expand-btn').addEventListener('click',()=>{const a=$('app');a.classList.toggle('viewer-only');$('expand-btn').textContent=a.classList.contains('viewer-only')?'⛶ Controls':'⛶ Expand';requestAnimationFrame(()=>{resize();fitView(true)})});
