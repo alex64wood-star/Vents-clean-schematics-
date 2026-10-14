@@ -55,7 +55,7 @@
 </head>
 <body>
 <div id="app">
-  <header><div><div class="brand">VENTA-CLEAN SW <span style="color:#96d65b">/ 3D EXTRACT</span></div><div class="sub">Kitchen extract schematic builder · v4.2</div></div><span class="tag">Merge + swept elbows</span></header>
+  <header><div><div class="brand">VENTA-CLEAN SW <span style="color:#96d65b">/ 3D EXTRACT</span></div><div class="sub">Kitchen extract schematic builder · v5.0</div></div><span class="tag">Manual elbows + callouts</span></header>
   <div id="viewer"><div id="hud"><strong id="hudline">Canopy 1 · Outlet 1</strong><br>Drag to rotate · pinch to zoom</div><div id="viewer-tools"><button id="focus-btn" type="button">◎ Centre</button><button id="expand-btn" type="button">⛶ Expand</button><button id="labels-btn" type="button" aria-pressed="true">Aa Labels</button></div><div class="legend"><span><i class="dot"></i>Not cleaned</span><span><i class="dot green"></i>Cleaned</span><span><i class="dot dark"></i>Access panel</span></div></div>
   <section id="dock">
     <div class="tabs"><button class="tab active" data-tab="build">＋ Build</button><button class="tab" data-tab="edit">✎ Edit</button><button class="tab" data-tab="runs">⑂ Runs</button><button class="tab" data-tab="files">↧ Save</button></div>
@@ -66,28 +66,30 @@
         <button class="component" type="button" data-component="canopy-outlet">⊙ Canopy outlet<span>Another duct off canopy</span></button>
         <button class="component" type="button" data-component="rect">▭ Rectangular duct<span>Width × height × length</span></button>
         <button class="component" type="button" data-component="round">◯ Spiral duct<span>Diameter × length</span></button>
+        <button class="component feature" type="button" data-component="elbow-rect">⌝ Rectangular 90° elbow<span>Manual bend + access panels</span></button>
+        <button class="component feature" type="button" data-component="elbow-round">⌝ Spiral 90° elbow<span>Manual bend + access panels</span></button>
         <button class="component feature" type="button" data-component="tee-rect">⊥ Rectangular T-piece<span>Through run + branch port</span></button>
         <button class="component feature" type="button" data-component="tee-round">⊥ Spiral T-piece<span>Through run + branch port</span></button>
         <button class="component" type="button" data-component="silencer">▣ Silencer<span>Oversized inline section</span></button>
-        <button class="component" type="button" data-component="axialfan">◉ Axial fan<span>Inline body + AXIAL FAN</span></button>
-        <button class="component" type="button" data-component="boxfan">▣ Box fan<span>Box + BOX FAN</span></button>
+        <button class="component" type="button" data-component="axialfan">◉ Axial fan<span>Simple oversized cylinder / box</span></button>
+        <button class="component" type="button" data-component="boxfan">▣ Box fan<span>Plain box-shaped fan</span></button>
         <button class="component" type="button" data-component="box">▤ Plenum / box<span>Plain rectangular box</span></button>
         <button class="component terminal" type="button" data-component="raincowl">♧ Rain cowl<span>Tapered roof outlet</span></button>
         <button class="component terminal" type="button" data-component="hat">⌂ Chinaman’s hat<span>Overhanging roof outlet</span></button>
         <button class="component terminal" type="button" data-component="birdbeak">◢ Bird-beak outlet<span>Angled-cut discharge</span></button>
         <button class="component" type="button" data-component="panel">▤ Access panel<span>Square / oval on duct</span></button>
       </div>
-      <p class="help">Select the run and dimensions below, then choose a component. A T-piece creates a separate branch automatically.</p>
+      <p class="help">Select the run and dimensions below. When changing direction, first add a manual 90° elbow — then continue in that direction. Elbows can have access panels and their own cleaning status.</p>
       <div class="row" style="margin-bottom:12px"><button class="btn outline grow" id="add-canopy">＋ Add canopy</button><button class="btn outline grow" id="add-outlet">＋ Outlet to canopy</button></div>
       <div class="field"><label for="build-run">Current duct run</label><select id="build-run"></select></div>
       <div class="grid2"><div class="field"><label for="add-shape">Duct type</label><select id="add-shape"><option value="rect">□ Rectangular</option><option value="round">○ Circular</option></select></div><div class="field"><label for="add-dir">Direction (site axes)</label><select id="add-dir"><option value="up">↑ Up</option><option value="back">↗ Back</option><option value="right">→ Right</option><option value="left">← Left</option><option value="front">↙ Forward</option><option value="down">↓ Down</option></select></div></div>
       <div class="grid2"><div class="field"><label for="add-length">Length (metres)</label><input id="add-length" type="number" inputmode="decimal" value="1.0" min="0.2" max="30" step="0.1"></div><div class="field"><label id="add-size-label" for="add-size">Duct width (mm)</label><select id="add-size"><option value="400">400</option><option value="500" selected>500</option><option value="600">600</option><option value="800">800</option><option value="1000">1000</option></select></div></div>
       <div class="field" id="build-height-row"><label for="add-height">Rectangular duct height (mm)</label><input id="add-height" type="number" inputmode="numeric" value="350" min="100" max="2000" step="50"></div>
       <button class="btn main wide" id="add-duct">＋ Add connected duct section</button>
-      <p class="help">Sizes that differ automatically add a tapered reducer or enlarger (round and rectangular). T-piece branches appear in the Runs list. Outlets finish a run. Schematic, not to scale.</p>
+      <p class="help">Size changes automatically add a reducer/enlarger. Choose a 90° elbow before changing direction; older saved automatic bends remain visible. T-pieces support branches and merges. Schematic, not to scale.</p>
     </div>
     <div class="pane" data-pane="edit">
-      <div id="edit-none" class="card">Tap a duct section, access panel or canopy in the 3D view, or select an item in <b>Runs</b>.</div>
+      <div id="edit-none" class="card">Tap a duct section, elbow, access panel or canopy in the 3D view, or select an item in <b>Runs</b>.</div>
       <div id="edit-segment" hidden>
         <div class="card-title" id="edit-name">Selected component</div>
         <div class="grid2"><div class="field"><label for="edit-length">Length (m)</label><input id="edit-length" type="number" inputmode="decimal" step="0.1" min="0.2" max="30"></div><div class="field"><label for="edit-dir">Direction</label><select id="edit-dir"><option value="up">↑ Up</option><option value="down">↓ Down</option><option value="left">← Left</option><option value="right">→ Right</option><option value="front">↙ Forward</option><option value="back">↗ Back</option></select></div></div>
@@ -96,7 +98,7 @@
         <div class="card" id="panel-editor"><div class="card-title">Access panels <span id="panel-count" class="chip">0</span></div>
           <div class="grid2"><div class="field"><label for="panel-face">Face</label><select id="panel-face"><option value="top">Top face</option><option value="right">Right face</option><option value="left">Left face</option><option value="bottom">Bottom face</option></select></div><div class="field"><label for="panel-at">Along section (%)</label><input type="number" id="panel-at" min="10" max="90" value="50" step="10"></div></div>
           <button class="btn outline wide" id="add-panel">＋ Add access panel</button><div id="panels-list" class="scrolllist" style="margin-top:7px"></div>
-          <p class="help">Square on rectangular duct. Oval on circular duct. You can add several per section.</p></div>
+          <p class="help">Square on rectangular duct and elbows. Oval on circular duct and elbows. Multiple panels are supported on bends too.</p></div>
         <div class="branch-control" id="tee-controls" hidden>
           <div class="card-title">T-piece junction / branch</div>
           <div class="field"><label for="tee-branch-dir">Branch direction</label><select id="tee-branch-dir"><option value="up">↑ Up</option><option value="down">↓ Down</option><option value="left">← Left</option><option value="right">→ Right</option><option value="front">↙ Forward</option><option value="back">↗ Back</option></select></div>
@@ -127,7 +129,9 @@ const dirs={up:[0,1,0],down:[0,-1,0],left:[-1,0,0],right:[1,0,0],front:[0,0,1],b
 const dirVector=d=>new THREE.Vector3(...dirs[d]);
 const uid=()=>String(++state.idCounter);
 const formatMetres=value=>Number(value).toLocaleString('en-GB',{maximumFractionDigits:2});
-const segmentName=s=>({fan:'Axial fan',axialfan:'Axial fan',boxfan:'Box fan',box:'Plenum / box',tee:'T-piece',raincowl:'Rain cowl',hat:'Chinaman’s hat',birdbeak:'Bird-beak outlet',terminal:'Discharge outlet',transition:'Transition'})[s.type] || (s.shape==='round'?'Spiral duct':'Rectangular duct');
+const segmentName=s=>({fan:'Axial fan',axialfan:'Axial fan',boxfan:'Box fan',box:'Plenum / box',tee:'T-piece',elbow:'90° elbow',raincowl:'Rain cowl',hat:'Chinaman’s hat',birdbeak:'Bird-beak outlet',terminal:'Discharge outlet',transition:'Transition'})[s.type] || (s.shape==='round'?'Spiral duct':'Rectangular duct');
+const shortSegmentName=s=>({elbow:'90° elbow',tee:'T-piece',raincowl:'Rain cowl',hat:'Chinaman’s hat',birdbeak:'Bird beak',silencer:'Silencer',boxfan:'Box fan',axialfan:'Axial fan',fan:'Axial fan',box:'Plenum',terminal:'Outlet'})[s.type]||(s.shape==='round'?'Spiral duct':'Rect duct');
+const compactSize=s=>s.shape==='round'?`Ø${s.size}`:`${s.size}×${s.height||Math.round(s.size*.68)}`;
 const TERMINALS=new Set(['terminal','raincowl','hat','birdbeak']);
 const defaultBranchDir=dir=>dir==='up'||dir==='down'?'right':'up';
 const isTerminated=s=>!!s&&TERMINALS.has(s.type);
@@ -152,9 +156,9 @@ function addComponent(which){
  if(which==='canopy')return addCanopy();
  if(which==='canopy-outlet')return addOutlet(suggestedCanopyId());
  if(which==='panel'){
-   if(state.selected?.kind==='segment'&&segmentById(state.selected.id)?.s.type==='duct'){
+   if(state.selected?.kind==='segment'&&['duct','elbow'].includes(segmentById(state.selected.id)?.s.type)){
      select('segment',state.selected.id,'edit');toast('Choose a face and tap Add access panel');
-   }else toast('Select straight ductwork first, then use Edit to add its panel');
+   }else toast('Select a duct or a manual elbow, then choose its panel face in Edit');
    return;
  }
  const o=activeOutlet();if(!o)return toast('Select a duct run first');
@@ -162,13 +166,24 @@ function addComponent(which){
  if(isTerminated(last))return toast('This run ends at an outlet. Remove it before extending.');
  if(o.joinToSegmentId)return toast('This run is already joined into a T-piece. Disconnect it before adding more.');
  const dir=$('add-dir').value;
- const shape=which==='round'||which==='tee-round'?'round':which==='rect'||which==='tee-rect'?'rect':$('add-shape').value;
+ const shape=which==='round'||which==='tee-round'||which==='elbow-round'?'round':which==='rect'||which==='tee-rect'||which==='elbow-rect'?'rect':$('add-shape').value;
  const size=Number($('add-size').value)||500;
  const height=shape==='round'?size:Number($('add-height').value);
  if(!(height>=100&&height<=2000))return toast('Height must be 100–2000 mm');
- if(last&&isReverse(last.dir,dir))return toast('180° turns need two 90° bends');
- const type=which==='rect'||which==='round'?'duct':which.startsWith('tee-')?'tee':which;
- const defaultLengths={tee:.65,silencer:1,axialfan:.85,boxfan:1,box:1,raincowl:.9,hat:.65,birdbeak:.85};
+ if(last&&isReverse(last.dir,dir))return toast('180° turns need two separate 90° elbows');
+ const type=which==='rect'||which==='round'?'duct':which.startsWith('tee-')?'tee':which.startsWith('elbow-')?'elbow':which;
+ if(type==='elbow'){
+   if(!last)return toast('Start with a duct section, then add the elbow');
+   if(last.type==='elbow')return toast('Add a straight length before the next elbow');
+   if(Math.abs(dirVector(last.dir).dot(dirVector(dir)))>.01)return toast('For an elbow, choose a direction 90° from the previous run');
+   if(last.shape!==shape)return toast('Match the elbow duct type to the incoming duct');
+   if(last.size!==size||(shape==='rect'&&last.height!==height))return toast('Match the elbow size to the incoming duct. Reducers belong on straight runs');
+ }else if(last&&last.dir!==dir&&last.type!=='elbow'){
+   return toast('Direction changes need a manual 90° elbow first');
+ }else if(last&&last.type==='elbow'&&last.dir!==dir){
+   return toast('Continue in the elbow direction. Add another elbow to turn again');
+ }
+ const defaultLengths={elbow:.65,tee:.65,silencer:1,axialfan:.85,boxfan:1,box:1,raincowl:.9,hat:.65,birdbeak:.85};
  const length=Number(defaultLengths[type]??$('add-length').value);
  if(!(length>=.2&&length<=30))return toast('Length must be 0.2–30 metres');
  const s={id:uid(),type,dir,length,shape,size,height,status:'notcleaned',panels:[]};
@@ -190,7 +205,17 @@ function editSegmentProp(prop,value){
  if(['size','height'].includes(prop)&&!(value>=100&&value<=2000))return toast('Dimensions must be 100–2000mm');
  if(prop==='dir'){
    const p=r.o.segments[r.index-1],n=r.o.segments[r.index+1];
-   if((p&&isReverse(p.dir,value))||(n&&isReverse(n.dir,value)))return toast('180° turns need two 90° bends');
+   if((p&&isReverse(p.dir,value))||(n&&isReverse(n.dir,value)))return toast('180° turns need two 90° elbows');
+   if(r.s.type==='elbow'&&p&&Math.abs(dirVector(p.dir).dot(dirVector(value)))>.01)return toast('A manual elbow must turn exactly 90°');
+   if(p?.type==='elbow'&&value!==p.dir)return toast('Continue in the direction of the preceding elbow');
+   if(n?.type==='elbow'&&Math.abs(dirVector(n.dir).dot(dirVector(value)))>.01)return toast('The following manual elbow must be a 90° turn');
+ }
+ if(r.s.type==='elbow'&&['shape','size','height'].includes(prop)){
+   const previous=r.o.segments[r.index-1];
+   if(previous){
+     const test={...r.s,[prop]:value};
+     if(test.shape!==previous.shape||test.size!==previous.size||(test.shape==='rect'&&test.height!==previous.height))return toast('Elbow dimensions must match the incoming duct');
+   }
  }
  if(r.s[prop]===value)return;
  r.s[prop]=value;
@@ -201,7 +226,7 @@ function editSegmentProp(prop,value){
  }
  render3D();renderUI();fitView(false);
 }
-function addPanel(){const r=segmentById(state.selected?.id);if(!r||r.s.type&&r.s.type!=='duct'){toast('Select straight ductwork first');return}const at=clamp(Number($('panel-at').value),10,90)/100;r.s.panels.push({id:uid(),at,face:$('panel-face').value});render3D();renderUI();toast('Access panel added')}
+function addPanel(){const r=segmentById(state.selected?.id);if(!r||!['duct','elbow'].includes(r.s.type||'duct')){toast('Select a duct section or 90° elbow first');return}const at=clamp(Number($('panel-at').value),10,90)/100;r.s.panels.push({id:uid(),at,face:$('panel-face').value});render3D();renderUI();toast('Access panel added')}
 function removePanel(id){const r=panelById(id);if(!r)return;r.s.panels=r.s.panels.filter(p=>p.id!==id);render3D();renderUI();toast('Access panel removed')}
 function removeSelectedSegment(){const r=segmentById(state.selected?.id);if(!r)return;if(!confirm('Remove this duct section and every section after it on this run?'))return;const removed=r.o.segments.splice(r.index);const removeIds=new Set(removed.map(s=>s.id));let changed=true;while(changed){changed=false;for(const out of state.outlets){if(out.parentSegmentId&&removeIds.has(out.parentSegmentId)){for(const child of out.segments)removeIds.add(child.id);changed=true;out._delete=true}}state.outlets=state.outlets.filter(o=>!o._delete)}for(const out of state.outlets){if(removeIds.has(out.joinToSegmentId))delete out.joinToSegmentId}state.selected={kind:'outlet',id:r.o.id};render3D();renderUI();fitView(false);toast('Run trimmed')}
 function labelOutlet(o){const c=canopyForOutlet(o);if(o.parentSegmentId){const r=segmentById(o.parentSegmentId);return `${c?.name||'Canopy'} · T-branch from ${r?segmentName(r.s)+' '+(r.index+1):'T-piece'}`}const siblings=state.outlets.filter(x=>x.canopyId===o.canopyId&&!x.parentSegmentId);return `${c?.name||'Canopy'} · outlet ${siblings.indexOf(o)+1}${o.joinToSegmentId?' (joined)':''}`}
@@ -238,10 +263,10 @@ function renderUI(){
  $('build-run').innerHTML='';for(const o of state.outlets){if(o.parentSegmentId&&state.outlets.some(x=>x.joinToSegmentId===o.parentSegmentId))continue;const op=document.createElement('option');op.value=o.id;op.textContent=labelOutlet(o);$('build-run').appendChild(op)}$('build-run').value=state.activeOutletId||'';
  const sel=state.selected;const seg=sel?.kind==='segment'?segmentById(sel.id):null;
  $('edit-none').hidden=!!sel;$('edit-segment').hidden=!seg;$('edit-canopy').hidden=sel?.kind!=='canopy';$('edit-outlet').hidden=sel?.kind!=='outlet';
- if(seg){const {s,o,index}=seg;$('edit-name').textContent=`${segmentName(s)} ${index+1} · ${segmentSize(s)} · ${formatMetres(s.length)} m`; $('add-shape').value=s.shape;$('edit-length').value=s.length;$('edit-dir').value=s.dir;$('edit-shape').value=s.shape;$('edit-size').value=s.size;$('edit-height').value=s.height||Math.round(s.size*.68);$('edit-height-row').hidden=s.shape==='round';$('edit-status').value=s.status;$('tee-controls').hidden=s.type!=='tee';if(s.type==='tee'){$('tee-branch-dir').value=s.branchDir||defaultBranchDir(s.dir);updateJoinControls(s.id)}$('panel-editor').hidden=s.type!=='duct';$('panel-count').textContent=s.panels.length+' panels';const host=$('panels-list');host.replaceChildren();s.panels.forEach((p,i)=>{const b=document.createElement('div');b.className='row';const txt=document.createElement('div');txt.className='grow';txt.style.fontSize='12px';txt.textContent=`${i+1}. ${s.shape==='rect'?'Square':'Oval'} access panel · ${p.face} · ${Math.round(p.at*100)}% along`;const btn=document.createElement('button');btn.className='btn small danger';btn.textContent='Remove';btn.addEventListener('click',()=>removePanel(p.id));b.append(txt,btn);host.appendChild(b)})}
+ if(seg){const {s,o,index}=seg;$('edit-name').textContent=`${segmentName(s)} ${index+1} · ${segmentSize(s)} · ${formatMetres(s.length)} m`; $('add-shape').value=s.shape;$('edit-length').value=s.length;$('edit-dir').value=s.dir;$('edit-shape').value=s.shape;$('edit-size').value=s.size;$('edit-height').value=s.height||Math.round(s.size*.68);$('edit-height-row').hidden=s.shape==='round';$('edit-status').value=s.status;$('tee-controls').hidden=s.type!=='tee';if(s.type==='tee'){$('tee-branch-dir').value=s.branchDir||defaultBranchDir(s.dir);updateJoinControls(s.id)}$('panel-editor').hidden=!['duct','elbow'].includes(s.type);$('panel-count').textContent=s.panels.length+' panels';const host=$('panels-list');host.replaceChildren();s.panels.forEach((p,i)=>{const b=document.createElement('div');b.className='row';const txt=document.createElement('div');txt.className='grow';txt.style.fontSize='12px';txt.textContent=`${i+1}. ${s.shape==='rect'?'Square':'Oval'} access panel · ${p.face} · ${Math.round(p.at*100)}% along`;const btn=document.createElement('button');btn.className='btn small danger';btn.textContent='Remove';btn.addEventListener('click',()=>removePanel(p.id));b.append(txt,btn);host.appendChild(b)})}
  if(sel?.kind==='canopy'){const c=byId(state.canopies,sel.id);if(c){$('canopy-name').textContent=c.name;$('canopy-width').value=c.width;$('canopy-status').value=c.status==='cleaned'?'cleaned':'notcleaned'}}
  const list=$('runs-list');list.replaceChildren();
- for(const c of state.canopies){appendItem(list,`▣ ${c.name}`,`${c.width}m canopy · ${c.status==='cleaned'?'cleaned':'not cleaned'} · ${state.outlets.filter(o=>o.canopyId===c.id&&!o.parentSegmentId).length} outlet(s)`,'canopy',c.id);for(const o of state.outlets.filter(o=>o.canopyId===c.id&&!(o.parentSegmentId&&state.outlets.some(x=>x.joinToSegmentId===o.parentSegmentId)))){appendItem(list,o.parentSegmentId?'　↳ T-piece branch':`　↳ Outlet ${state.outlets.filter(a=>a.canopyId===c.id&&!a.parentSegmentId).indexOf(o)+1}`,`${o.segments.length} section(s)${o.joinToSegmentId?' · joined into T-piece':''}${o.id===state.activeOutletId?' · active':''}`,'outlet',o.id);o.segments.forEach((s,i)=>appendItem(list,`　　 ${i+1}. ${segmentName(s)}`,`${segmentSize(s)} · ${formatMetres(s.length)} m · ${s.dir} · ${s.status==='cleaned'?'cleaned':'not cleaned'}${s.type==='duct'?' · '+s.panels.length+' panels':''}`,'segment',s.id))}}
+ for(const c of state.canopies){appendItem(list,`▣ ${c.name}`,`${c.width}m canopy · ${c.status==='cleaned'?'cleaned':'not cleaned'} · ${state.outlets.filter(o=>o.canopyId===c.id&&!o.parentSegmentId).length} outlet(s)`,'canopy',c.id);for(const o of state.outlets.filter(o=>o.canopyId===c.id&&!(o.parentSegmentId&&state.outlets.some(x=>x.joinToSegmentId===o.parentSegmentId)))){appendItem(list,o.parentSegmentId?'　↳ T-piece branch':`　↳ Outlet ${state.outlets.filter(a=>a.canopyId===c.id&&!a.parentSegmentId).indexOf(o)+1}`,`${o.segments.length} section(s)${o.joinToSegmentId?' · joined into T-piece':''}${o.id===state.activeOutletId?' · active':''}`,'outlet',o.id);o.segments.forEach((s,i)=>appendItem(list,`　　 ${i+1}. ${segmentName(s)}`,`${segmentSize(s)} · ${formatMetres(s.length)} m · ${s.dir} · ${s.status==='cleaned'?'cleaned':'not cleaned'}${['duct','elbow'].includes(s.type)?' · '+s.panels.length+' panels':''}`,'segment',s.id))}}
  $('hudline').textContent=(activeOutlet()?labelOutlet(activeOutlet()):'No active run')+' · '+(activeOutlet()?.segments.length||0)+' sections';
 }
 function appendItem(host,title,details,kind,id){const b=document.createElement('button');b.type='button';b.className='item'+(state.selected?.kind===kind&&state.selected.id===id?' active':'');const strong=document.createElement('span');strong.textContent=title;const sub=document.createElement('span');sub.className='meta';sub.textContent=details;b.append(strong,sub);b.addEventListener('click',()=>select(kind,id,'edit'));host.appendChild(b)}
@@ -254,20 +279,20 @@ const sceneGroup=new THREE.Group();scene.add(sceneGroup);const labelGroup=new TH
 // Billboard labels use canvas textures so text appears both on the iPhone and in PNG exports.
 // They are excluded from sceneGroup so fitting the camera is based on duct geometry only.
 function createSceneLabel(title,details,anchor,offset=new THREE.Vector3(40,35,42)){
- const canvas=document.createElement('canvas');canvas.width=640;canvas.height=152;
+ const canvas=document.createElement('canvas');canvas.width=560;canvas.height=152;
  const ctx=canvas.getContext('2d');if(!ctx)return;
- ctx.fillStyle='rgba(12,22,24,.95)';ctx.beginPath();ctx.roundRect(4,4,632,144,21);ctx.fill();
+ ctx.fillStyle='rgba(12,22,24,.95)';ctx.beginPath();ctx.roundRect(4,4,552,144,21);ctx.fill();
  ctx.strokeStyle='rgba(187,218,199,.88)';ctx.lineWidth=3;ctx.stroke();
- ctx.textBaseline='middle';ctx.fillStyle='#ffffff';ctx.font='700 32px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
- ctx.fillText(title,30,55,580);
- ctx.fillStyle='#bdd9c6';ctx.font='29px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
- ctx.fillText(details||' ',30,106,580);
+ ctx.textBaseline='middle';ctx.fillStyle='#ffffff';ctx.font='700 51px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+ ctx.fillText(title,22,52,510);
+ ctx.fillStyle='#bdd9c6';ctx.font='43px -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+ ctx.fillText(details||' ',22,107,510);
  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
  const mat=new THREE.SpriteMaterial({map:texture,transparent:true,depthTest:false,depthWrite:false,toneMapped:false});
  const sprite=new THREE.Sprite(mat);sprite.position.copy(anchor).add(offset);sprite.renderOrder=20;
- labelGroup.add(sprite);labelSprites.push(sprite);
+ sprite.userData.anchor=anchor.clone();labelGroup.add(sprite);labelSprites.push(sprite);
  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([anchor,sprite.position]),new THREE.LineBasicMaterial({color:0xc0d0c1,transparent:true,opacity:.65,depthTest:false,depthWrite:false}));
- line.renderOrder=19;labelGroup.add(line);
+ line.renderOrder=19;labelGroup.add(line);sprite.userData.leader=line;
 }
 function clearSceneLabels(){
  for(const child of [...labelGroup.children]){
@@ -277,19 +302,66 @@ function clearSceneLabels(){
  }
  labelSprites.length=0;
 }
+// Project anchor points into screen coordinates, distribute the off-body labels
+// into non-overlapping 2D boxes, then unproject them back into the 3D renderer.
+// The same layout runs at full export resolution, so PNGs also get leader lines.
+let previousLabelLayout=0;
 function scaleSceneLabels(forExport=false){
- const height=Math.max(1,forExport?1100:viewer.clientHeight);
+ if(!labelsVisible)return;
+ const height=Math.max(1,forExport?Math.max(1100,viewer.clientHeight):viewer.clientHeight);
  const width=Math.max(1,forExport?1400:viewer.clientWidth);
- const pxW=forExport?205:Math.min(148,Math.max(110,width*.31));
- const pxH=pxW*152/640;
- const fov=THREE.MathUtils.degToRad(camera.fov);
- for(const sprite of labelSprites){
+ const count=labelSprites.length;
+ const pxW=forExport?200:Math.max(86,Math.min(134,width*.30));
+ const pxH=pxW*152/560;
+ const top=forExport?12:Math.min(104,height*.30),bottom=forExport?height-18:height-41;
+ const left=pxW/2+5,right=width-pxW/2-5;
+ const used=[];
+ const projected=labelSprites.map((sprite,i)=>{
+  const p=sprite.userData.anchor.clone().project(camera);
+  return {sprite,i,p,x:(p.x+1)*width/2,y:(1-p.y)*height/2};
+ }).sort((a,b)=>a.y-b.y||a.x-b.x);
+ for(const item of projected){
+  const {sprite,p,x,y}=item;
+  const depthOK=p.z>=-1.15&&p.z<=1.15;
+  // Don't clutter the edge of the screen with callouts from offscreen geometry.
+  const visible=depthOK&&x>-15&&x<width+15&&y>-15&&y<height+15;
+  sprite.visible=visible;
+  const leader=sprite.userData.leader;leader.visible=visible;
+  if(!visible)continue;
+  const cx=Math.max(left,Math.min(right,x));
+  const preferredSide=x<width/2?left:right;
+  const oppositeSide=x<width/2?right:left;
+  const maxTop=Math.max(top,bottom-pxH);
+  let best=null;
+  for(const side of [preferredSide,oppositeSide,cx]){
+   for(let step=0;step<=Math.ceil(height/(pxH+5))+2;step++){
+    for(const sign of step===0?[0]:[-1,1]){
+     const yy=Math.max(top,Math.min(maxTop,y+sign*step*(pxH+6)));
+     const xx=Math.max(left,Math.min(right,side));
+     const rect={left:xx-pxW/2-3,right:xx+pxW/2+3,top:yy-pxH/2-3,bottom:yy+pxH/2+3};
+     const collisions=used.filter(r=>!(r.right<rect.left||r.left>rect.right||r.bottom<rect.top||r.top>rect.bottom)).length;
+     const score=collisions*100000+Math.abs(yy-y)*.6+Math.abs(xx-x)*.14+(side===oppositeSide?12:0);
+     if(!best||score<best.score)best={xx,yy,rect,score,collisions};
+     if(best.collisions===0&&score<120)break;
+    }
+    if(best?.collisions===0&&best.score<120)break;
+   }
+  }
+  if(!best)continue;
+  used.push(best.rect);
+  // At very high density, shrink rather than allowing labels to overlap.
+  const ndc=new THREE.Vector3(best.xx/width*2-1,1-best.yy/height*2,p.z);
+  sprite.position.copy(ndc.unproject(camera));
   const distance=Math.max(1,sprite.position.distanceTo(camera.position));
-  const unitPerPixel=2*distance*Math.tan(fov/2)/height;
-  sprite.scale.set(pxW*unitPerPixel,pxH*unitPerPixel,1);
+  const unitsPerPixel=2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov)/2)/height;
+  sprite.scale.set(pxW*unitsPerPixel,pxH*unitsPerPixel,1);
+  const positions=leader.geometry.attributes.position;
+  positions.setXYZ(0,sprite.userData.anchor.x,sprite.userData.anchor.y,sprite.userData.anchor.z);
+  positions.setXYZ(1,sprite.position.x,sprite.position.y,sprite.position.z);
+  positions.needsUpdate=true;
  }
 }
-function toggleLabels(){labelsVisible=!labelsVisible;labelGroup.visible=labelsVisible;$('labels-btn').textContent=`Aa Labels: ${labelsVisible?'on':'off'}`;$('labels-btn').setAttribute('aria-pressed',String(labelsVisible));}
+function toggleLabels(){labelsVisible=!labelsVisible;labelGroup.visible=labelsVisible;if(labelsVisible)scaleSceneLabels();$('labels-btn').textContent=`Aa Labels: ${labelsVisible?'on':'off'}`;$('labels-btn').setAttribute('aria-pressed',String(labelsVisible));}
 
 function material(color,metalness=.12){return new THREE.MeshStandardMaterial({color,metalness,roughness:.55,side:THREE.DoubleSide})}
 function meshBox(w,h,l,color){return new THREE.Mesh(new THREE.BoxGeometry(Math.max(1,w),Math.max(1,h),Math.max(1,l)),material(color))}
@@ -480,10 +552,10 @@ function addComponentDetails(group,s,cross,len){
  if(type==='axialfan'||type==='fan'||type==='silencer'){
   if(round){const m=simpleCylinder(group,(cross+(type==='silencer'?5:0))/2,len,col);addPick(m,'segment',s.id)}
   else block(cross+(type==='silencer'?5:0),height+(type==='silencer'?5:0),len);
-  if(type!=='silencer')wordOnBody(group,'AXIAL FAN',Math.min(cross*1.05,108),20);
+  // Fan name is shown in the external callout only (no writing on the 3D body).
  }else if(type==='boxfan'||type==='box'){
   block(Math.max(cross*1.28,52),Math.max(height*1.4,46),len);
-  if(type==='boxfan')wordOnBody(group,'BOX FAN',Math.min(cross*1.12,115),19);
+  // Fan name is shown in the external callout only (no writing on the 3D body).
  }else if(type==='tee'){
   if(round){const m=simpleCylinder(group,cross/2,len,col);addPick(m,'segment',s.id)}
   else block(cross,height,len);
@@ -530,8 +602,24 @@ function addDuctStraight(o,s,i,start,end){const d=dirVector(s.dir),len=start.dis
  const group=new THREE.Group();group.position.copy(center);group.quaternion.copy(q);sceneGroup.add(group);group.add(mesh);addPick(mesh,'segment',s.id);addComponentDetails(group,s,cross,Math.max(len,1));if((s.type||'duct')==='duct')for(const p of s.panels)makePanel(group,s,p,len);
  if((s.type||'duct')==='duct'){const edges=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry,24),new THREE.LineBasicMaterial({color:0x25372d,transparent:true,opacity:.42}));mesh.add(edges)}
 }
+function makeElbowPanel(node,incoming,p,r){
+ const da=dirVector(incoming.dir),db=dirVector(node.s.dir),normal=new THREE.Vector3().crossVectors(da,db).normalize();
+ const pivot=node.start,center=pivot.clone().addScaledVector(db,r);
+ const startingRadius=db.clone().multiplyScalar(-r),t=clamp(p.at,.1,.9),theta=t*Math.PI/2;
+ const point=center.clone().add(startingRadius.clone().applyAxisAngle(normal,theta));
+ const tangent=da.clone().applyAxisAngle(normal,theta).normalize();
+ const first=rectFrameForSection(incoming,da,db);
+ let x=first.widthAxis.clone().applyQuaternion(new THREE.Quaternion().setFromUnitVectors(da,tangent));
+ x.addScaledVector(tangent,-x.dot(tangent)).normalize();
+ const y=new THREE.Vector3().crossVectors(tangent,x).normalize();
+ const basis=new THREE.Matrix4().makeBasis(x,y,tangent);
+ const group=new THREE.Group();group.position.copy(point);group.quaternion.setFromRotationMatrix(basis);
+ sceneGroup.add(group);
+ // The panel follows the selected face of the swept bend at the chosen arc position.
+ makePanel(group,node.s,p,Math.max(r*1.6,36));
+}
 function panelGroup(face){const g=new THREE.Group();if(face==='right')g.rotation.z=-Math.PI/2;if(face==='left')g.rotation.z=Math.PI/2;if(face==='bottom')g.rotation.z=Math.PI;return g}
-function makePanel(group,s,p,length){const size=s.size/10;const g=panelGroup(p.face);g.position.z=(p.at-.5)*length;group.add(g);const onSide=p.face==='left'||p.face==='right';const faceRadius=s.shape==='round'?size/2:(onSide?size/2:(s.height||s.size*.68)/20);const normal=new THREE.Vector3(0,faceRadius+1.6,0).applyAxisAngle(new THREE.Vector3(0,0,1),g.rotation.z);g.position.x=normal.x;g.position.y=normal.y;const panelW=clamp(Math.min(size*.52,length*.6),12,46),panelL=s.shape==='rect'?panelW:clamp(length*.35,18,54);
+function makePanel(group,s,p,length){const size=s.size/10;const g=panelGroup(p.face);g.position.z=s.type==='elbow'?0:(p.at-.5)*length;group.add(g);const onSide=p.face==='left'||p.face==='right';const faceRadius=s.shape==='round'?size/2:(onSide?size/2:(s.height||s.size*.68)/20);const normal=new THREE.Vector3(0,faceRadius+1.6,0).applyAxisAngle(new THREE.Vector3(0,0,1),g.rotation.z);g.position.x=normal.x;g.position.y=normal.y;const panelW=clamp(Math.min(size*.52,length*.6),12,46),panelL=s.shape==='rect'?panelW:clamp(length*.35,18,54);
  if(s.shape==='rect'){
     const edge=meshBox(panelW+5,3,panelL+5,0x142f1d);const face=meshBox(panelW,4,panelL,PALETTE.door);face.position.y=1.5;g.add(edge,face);addPick(face,'segment',s.id);addPick(edge,'segment',s.id);
  }else{
@@ -539,14 +627,14 @@ function makePanel(group,s,p,length){const size=s.size/10;const g=panelGroup(p.f
  }
  // No invented panel dimensions: panel sizes here are schematic rather than surveyed measurements.
  const anchor=group.localToWorld(g.position.clone());
- createSceneLabel(`${s.shape==='rect'?'Square':'Oval'} access panel`,`${p.face} face · ${Math.round(p.at*100)}% along`,anchor,new THREE.Vector3(32,18,55));
+ createSceneLabel(`${s.shape==='rect'?'Square':'Oval'} panel`,`${p.face} · ${Math.round(p.at*100)}%`,anchor,new THREE.Vector3(32,18,55));
 }
-function makeElbow(pivot,da,db,prev,next,r){
+function makeElbow(pivot,da,db,prev,next,r,options={}){
  const pin=pivot.clone().addScaledVector(da,-r),pout=pivot.clone().addScaledVector(db,r);
  const curve=new THREE.QuadraticBezierCurve3(pin,pivot,pout);
- const color=PALETTE[prev.status]||PALETTE.notcleaned;
+ const color=PALETTE[options.status||prev.status]||PALETTE.notcleaned;
  const round=prev.shape==='round'&&next.shape==='round';
- const pickId=prev.id;
+ const pickId=options.pickId||prev.id;
  if(round){
   // Keep the already-working circular elbow unchanged.
   const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,36,prev.size/20,32,false),material(color));
@@ -735,14 +823,31 @@ function render3D(){
   }
   nodes.forEach((n,i)=>{
    const d=dirVector(n.s.dir),before=i?nodes[i-1]:null,after=nodes[i+1];
+   if(n.s.type==='elbow'&&before){
+     const radius=radii[i-1]||Math.min(45,n.s.length*U*.72,before.s.length*U*.35);
+     makeElbow(n.start,dirVector(before.s.dir),d,before.s,n.s,radius,{pickId:n.s.id,status:n.s.status});
+     const followingTransition=after&&n.s.dir===after.s.dir?(transitions[i]||0):0;
+     const exitEnd=n.end.clone().addScaledVector(d,-followingTransition/2);
+     if(n.start.clone().addScaledVector(d,radius).distanceTo(exitEnd)>.3){
+       // A short exit stub belongs to the elbow component and shares its cleaning status.
+       const stub={...n.s,type:'duct',panels:[]};
+       addDuctStraight(o,stub,i,n.start.clone().addScaledVector(d,radius),exitEnd);
+     }
+     if(followingTransition)makeReducer(n.s,after.s,exitEnd,n.end.clone().addScaledVector(d,followingTransition/2));
+     for(const p of n.s.panels)makeElbowPanel(n,before.s,p,radius);
+     const labelAnchor=n.start.clone().addScaledVector(d,radius*.45).addScaledVector(dirVector(before.s.dir),-radius*.45);
+     createSceneLabel(`90° elbow ${i+1}`,`${compactSize(n.s)} · ${n.s.status==='cleaned'?'✓':'✕'}`,labelAnchor);
+     return;
+   }
    const previousTurn=i>0?radii[i-1]:0,nextTurn=i<nodes.length-1?radii[i]:0;
    const previousTransition=i>0?transitions[i-1]:0,nextTransition=i<nodes.length-1?transitions[i]:0;
    const start=n.start.clone().addScaledVector(d,previousTurn+(previousTurn?previousTransition:previousTransition*.5));
    const end=n.end.clone().addScaledVector(d,-(nextTurn||nextTransition*.5));
    addDuctStraight(o,n.s,i,start,end);
    const mid=n.start.clone().lerp(n.end,.5);
-   createSceneLabel(`${segmentName(n.s)} ${i+1}`,`${segmentSize(n.s)} · ${formatMetres(n.s.length)} m · ${n.s.status==='cleaned'?'CLEANED':'NOT CLEANED'}`,mid,new THREE.Vector3(i%2? -58:52,32+i%3*14,40));
+   createSceneLabel(`${shortSegmentName(n.s)} ${i+1}`,`${compactSize(n.s)} · ${formatMetres(n.s.length)}m · ${n.s.status==='cleaned'?'✓':'✕'}`,mid,new THREE.Vector3(i%2? -58:52,32+i%3*14,40));
    if(after){
+    if(after.s.type==='elbow')return; // manual elbow draws its own geometry and status
     const nextD=dirVector(after.s.dir),turn=!!radii[i];
     if(turn){
       makeElbow(n.end,d,nextD,n.s,after.s,radii[i]);
@@ -788,7 +893,7 @@ function fitView(showToast=false){
 }
 function resize(){const w=Math.max(1,viewer.clientWidth),h=Math.max(1,viewer.clientHeight);camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe(viewer);resize();
 let pStart=null;renderer.domElement.addEventListener('pointerdown',e=>{pStart={x:e.clientX,y:e.clientY,t:Date.now()}});renderer.domElement.addEventListener('pointerup',e=>{if(!pStart||Math.hypot(e.clientX-pStart.x,e.clientY-pStart.y)>9)return;const r=renderer.domElement.getBoundingClientRect();pointer.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(pickMeshes,false);const hit=hits.find(h=>h.object.userData.pick);if(hit){const p=hit.object.userData.pick;select(p.kind,p.id,'edit')}pStart=null});
-function frame(){requestAnimationFrame(frame);controls.update();scaleSceneLabels();renderer.render(scene,camera)}frame();
+function frame(t=0){requestAnimationFrame(frame);controls.update();if(t-previousLabelLayout>90){scaleSceneLabels();previousLabelLayout=t}renderer.render(scene,camera)}frame();
 function downloadBlob(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},2000)}
 function exportImage(){const w=1400,h=1100;const prevW=viewer.clientWidth,prevH=viewer.clientHeight,prevAspect=camera.aspect,prevRatio=renderer.getPixelRatio();renderer.setPixelRatio(1);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();scaleSceneLabels(true);renderer.render(scene,camera);const image=renderer.domElement.toDataURL('image/png');renderer.setPixelRatio(prevRatio);renderer.setSize(prevW,prevH,false);camera.aspect=prevAspect;camera.updateProjectionMatrix();scaleSceneLabels();const pic=new Image();pic.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h+130;const ctx=c.getContext('2d');ctx.fillStyle='#10171a';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#e9f2e6';ctx.font='bold 32px Arial';ctx.fillText('VENTA-CLEAN SW  |  EXTRACT SCHEMATIC',36,52);ctx.font='19px Arial';ctx.fillStyle='#a6bba9';ctx.fillText(`${state.canopies.length} canopy(s)   ·   ${state.outlets.length} outlet(s)   ·   schematic, not to scale`,36,89);ctx.drawImage(pic,0,110);c.toBlob(b=>downloadBlob(b,'venta-clean-schematic.png'),'image/png');toast('PNG image prepared')};pic.src=image}
 function snapshot(){return JSON.stringify(state,(key,value)=>value)}
